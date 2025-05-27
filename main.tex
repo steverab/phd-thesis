@@ -1,0 +1,314 @@
+% !TeX TS-program = pdflatex
+% !BIB TS-program = biber
+% !TeX root = main.tex
+\documentclass{ut-thesis}
+% packages
+\usepackage[colorlinks, citecolor=teal, linkcolor=teal]{hyperref} % for links
+% \usepackage[backend=biber]{biblatex} % for references
+\usepackage{graphicx} % for embedding graphics
+\usepackage{booktabs} % for pretty tables
+\usepackage{lipsum} % for gibberish text
+% author data
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{natbib}
+\usepackage{bibentry}
+\nobibliography*
+\usepackage{booktabs}
+
+\usepackage{graphicx}       % For graphics inclusion
+\usepackage[dvipsnames]{xcolor}         % For colored text
+\usepackage{lmodern}        % Better fonts
+% \usepackage{titlesec}       % For customizing section titles
+\usepackage{microtype}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{enumitem}
+\usepackage{stmaryrd} % for \llbracket and \rrbracket
+\usepackage{xspace}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{nicefrac}
+\usepackage[Lenny]{fncychap}
+\ChNameVar{\Large}
+\ChTitleVar{\Huge}
+
+\usepackage{todonotes}
+
+\usepackage{amsfonts}
+\usepackage{dsfont}
+\pgfplotsset{compat=1.15}
+\usetikzlibrary{shapes, arrows.meta, positioning, fit, calc, intersections, pgfplots.fillbetween}
+
+\usepackage{listings}
+
+% Define custom style for listings
+\lstdefinestyle{modelStyle}{
+    backgroundcolor=\color{white},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{black},
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    captionpos=b,
+    language=Python
+}
+\lstset{style=modelStyle}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\usepackage[most]{tcolorbox}
+
+\tcolorboxenvironment{theorem}{
+  enhanced jigsaw,
+  colback=red!5!white,
+  % colframe=blue!75!black,
+  % boxrule=0.8pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{red!75!black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{definition}{
+  enhanced jigsaw,
+  colback=green!5!white,
+  % colframe=green!60!black,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{green!60!black},  % thick left border only
+  % boxrule=0.8pt,
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{lemma}{
+  enhanced jigsaw,
+  colback=cyan!5!white,
+  % colframe=cyan!60!black,
+  % boxrule=0.8pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{cyan!60!black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{remark}{
+  enhanced jigsaw,
+  colback=blue!5!white,
+  % colframe=yellow!50!black,
+  % boxrule=0.6pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{blue!80!black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{takeaway}{
+  enhanced jigsaw,
+  colback=orange!5!white,
+  % colframe=orange!80!black,
+  % boxrule=0.8pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{orange!80!black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{contriback}{
+  enhanced jigsaw,
+  colback=black!5!white,
+  colframe=black,
+  % boxrule=1pt,
+  % boxrule=0pt,                     % no visible full border
+  % borderline west={3pt}{0pt}{black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{paperref}{
+  enhanced jigsaw,
+  colback=teal!5!white,
+  colframe=teal,
+  % boxrule=1pt,
+  % boxrule=0pt,                     % no visible full border
+  % borderline west={3pt}{0pt}{black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{assumption}{
+  enhanced jigsaw,
+  colback=purple!5!white,
+  colframe=purple!70!black,
+  boxrule=0.8pt,
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{corollary}{
+  enhanced jigsaw,
+  colback=red!5!white,
+  % colframe=red!70!black,
+  % boxrule=0.8pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{red!75!black},  % thick left
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+\tcolorboxenvironment{proposition}{
+  enhanced jigsaw,
+  colback=teal!5!white,
+  % colframe=teal!60!black,
+  % boxrule=0.8pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{teal!60!black},  % thick left border only
+  sharp corners,
+  before skip=10pt,
+  after skip=10pt,
+  breakable,
+}
+
+% Proof environment (with QED symbol)
+\tcolorboxenvironment{proof}{
+  enhanced jigsaw,
+  colback=gray!5!white,
+  % colframe=black!50,
+  % boxrule=0.6pt,
+  boxrule=0pt,                     % no visible full border
+  borderline west={3pt}{0pt}{black!50},  % thick left border only
+  sharp corners,
+  before skip=-10pt,
+  after skip=10pt,
+  breakable,
+}
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem*{takeaway}{Takeaway}
+\newtheorem*{contriback}{Contribution Acknowledgment}
+\newtheorem*{paperref}{Paper Reference}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+
+% \theoremstyle{plain}
+% \newtheorem{theorem}{Theorem}[section]
+% \newtheorem{proposition}[theorem]{Proposition}
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{corollary}[theorem]{Corollary}
+% \theoremstyle{definition}
+% \newtheorem{definition}[theorem]{Definition}
+% \newtheorem{assumption}[theorem]{Assumption}
+% \theoremstyle{remark}
+% \newtheorem{remark}[theorem]{Remark}
+% \newtheorem*{takeaway}{Takeaway}
+
+% \usepackage{thmtools, thm-restate}
+
+\usepackage{bm}
+
+% \newcommand{\contriback}[1] {
+% \begin{tcolorbox}[colback=gray!5,colframe=gray!75!black,title=Contribution Acknowledgment]
+% #1
+% \end{tcolorbox}  
+% }
+
+% \newcommand{\paperref}[1] {
+% \begin{tcolorbox}[colback=teal!5,colframe=teal!90!black,title=Paper Reference]
+% \textbf{The contents of this chapter consist of research and results taken from:}\\#1
+% \end{tcolorbox}
+% }
+
+\newcommand{\boxedblock}[1] {
+\begin{tcolorbox}[colback=teal!5,colframe=teal!90!black]
+\centering\emph{#1}
+\end{tcolorbox}
+}
+
+\makeatletter
+\newcommand{\algcolor}[2]{%
+  \hskip-\ALG@thistlm\colorbox{#1}{\parbox{\dimexpr\linewidth-2\fboxsep}{\hskip\ALG@thistlm\relax #2}}%
+}
+\newcommand{\algemph}[1]{\algcolor{yellow!20!white}{#1}}
+\makeatother
+
+\author{Stephan Rabanser}
+\title{Uncertainty-Driven Reliability: Selective Prediction and Trustworthy Deployment in Modern Machine Learning}
+\degree{Doctor of Philosophy}
+\department[]{Department of Computer Science}
+\gradyear{2025}
+% reference database
+% \addbibresource{main.bib}
+\begin{document}
+  \frontmatter
+    \maketitle
+    \begin{abstract}
+      \input{chapters/00_abstract}
+    \end{abstract}
+    % \begin{dedication}
+    %   To Mom
+    % \end{dedication}
+    \begin{acknowledgements}
+      \input{chapters/00_acknowledgements}
+    \end{acknowledgements}
+    \tableofcontents
+    \listoftables
+    \listoffigures
+  \mainmatter
+    \input{chapters/01_introduction}
+    \input{chapters/02_background}
+    \input{chapters/03_sptd}
+    \input{chapters/04_sptd_dp}
+    \input{chapters/06_sc_bounds}
+    \input{chapters/07_confidential_guardian}
+    % \input{chapters/08_gatekeeper}
+    \input{chapters/09_conclusion}
+  \appendix
+    \input{chapters/appendices/03_sptd}
+    \input{chapters/appendices/04_sptd_dp}
+    \input{chapters/appendices/06_sc_bounds}
+    \input{chapters/appendices/07_confidential_guardian}
+    % \input{chapters/appendices/08_gatekeeper}
+  \backmatter
+  \bibliography{main}
+\bibliographystyle{icml2025}
+  % \printbibliography[heading=bibintoc]
+  % \lipsum[1-6]
+  
+\end{document}

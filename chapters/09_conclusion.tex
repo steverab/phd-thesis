@@ -1,0 +1,64 @@
+\chapter{Concluding Remarks and Future Directions}
+\label{ch:conclusion}
+
+In this thesis, we have investigated the theme of \emph{uncertainty-driven reliability} in machine learning (ML) and explored how selective prediction frameworks, calibration strategies, privacy constraints, adversarial considerations, and resource-aware deployment all contribute to building trustworthy models. We highlighted the importance of understanding how uncertainty can guide safer decision-making, demonstrated that monitoring a model’s training dynamics can offer valuable insights for rejecting uncertain inputs, explored the interplay between differential privacy and uncertainty, established when and how ideal selective prediction performance can be achieved, uncovered potential adversarial uses of confidence-based abstentions, and showcased how careful calibration in multi-model setups can conserve resources without sacrificing performance.
+
+Taken together, these contributions underscore the multifaceted nature of modern ML reliability. While selective prediction approaches and uncertainty quantification techniques are becoming increasingly sophisticated, they must be integrated into broader, principled frameworks that account for real-world constraints, adversarial threats, privacy demands, and practical considerations such as computational cost. 
+
+Several cross-cutting observations motivate the future directions proposed below: (1) effective uncertainty quantification remains an open challenge in large-scale and privacy-sensitive settings, (2) the evaluation of uncertainty-informed decisions is still underdeveloped and often misleading, and (3) uncertainty, while desirable, can be gamed or misused, warranting careful design and oversight. These insights lead us to identify and pursue the following lines of work.
+
+\section{Future Work}
+
+\subsection{Uncertainty Scoring for Modern Models}
+
+\paragraph{Extending scoring strategies.} A core thread of this thesis has been developing and evaluating mechanisms that score the uncertainty of individual inputs. Our method based on training dynamics demonstrated that temporal information from intermediate model states can be used to construct powerful uncertainty signals without modifying model internals. This opens up a broader research agenda around designing scoring strategies that generalize across architectures and data modalities. Black-box techniques—e.g., based on input perturbations or surrogate likelihoods—could make such methods more broadly applicable. Conversely, white-box techniques—e.g., leveraging gradients, logits, or internal representations—could offer sharper diagnostic power for specific model classes.
+
+\paragraph{Scalability to large models.} As models scale, so does the cost of computing or storing auxiliary signals. An important direction is to design scalable approximations of checkpoint-based scoring, or efficient surrogate methods that replicate its effects using fewer forward/backward passes. Compression-aware confidence scoring, fast score distillation, and memory-efficient retrospective inference are promising building blocks for making uncertainty scores compatible with billion-parameter models and real-time applications.
+
+\paragraph{Deferral in cascaded architectures.} This thesis showed how uncertainty can guide deferral decisions in two-model cascades. Extending this to dynamic, multi-level cascades (e.g., mobile–edge–cloud architectures) is a natural progression. Here, uncertainty scoring needs to be both accurate and adaptive, responding to changing resource budgets and task complexity. Future research may explore reinforcement learning or online optimization to automatically learn context-sensitive routing policies, informed by real-time uncertainty signals.
+
+\subsection{Interplay of Uncertainty with Other Trust Metrics}
+
+\paragraph{Competing objectives and tensions.} The interaction between uncertainty estimation and differential privacy in this thesis highlighted an underappreciated challenge: efforts to improve one dimension of trustworthiness (e.g., uncertainty calibration via ensembling) may directly harm another (e.g., privacy leakage). More broadly, uncertainty must be studied not in isolation but as part of a multi-objective design space that includes fairness, interpretability, robustness, and security.
+
+\paragraph{Unified optimization frameworks.} Future research should explore principled frameworks that explicitly trade off among trust metrics. This might involve regularizing uncertainty estimation techniques with fairness constraints, or jointly calibrating privacy-preserving predictors while optimizing abstention coverage. Bayesian modeling, constrained optimization, and multi-objective reinforcement learning could be fruitful foundations for this kind of joint trust modeling.
+
+\paragraph{Auditable and verifiable uncertainty.} As shown in our work on adversarial uncertainty manipulation, even well-calibrated uncertainty can be exploited. There is a growing need for mechanisms that make uncertainty estimates verifiable—ensuring that they reflect genuine model uncertainty rather than being artifacts of malicious post-processing. This motivates research into zero-knowledge inference, proof-carrying predictions, or reference-based coverage guarantees (e.g., conformal prediction) that make confidence trustworthy and inspectable.
+
+\subsection{Determining Model Suitability under Distribution Shifts}
+
+\paragraph{Distributional mismatch as a root cause.} Several failures of uncertainty-aware methods in our work—particularly under differential privacy—can be traced back to distributional mismatch. Uncertainty estimates that are well-calibrated on the training distribution may collapse under shift, yet deployment rarely offers labeled data to test or adapt these models.
+
+\paragraph{Label-free suitability filters.} Future directions include designing diagnostic tools that identify dataset–model mismatch without access to ground-truth labels. These might include meta-predictors trained to estimate confidence distribution shifts, or divergence-based tests applied to intermediate model representations. The ideal suitability filter would provide practitioners with interpretable warnings when a model is likely to fail.
+
+\paragraph{LLM-centric challenges.} These questions become even more critical in the context of large language models (LLMs), which are often deployed zero-shot across new domains. Although their training data is vast, it is not comprehensive. Understanding when LLMs are extrapolating vs interpolating, and which domains are underrepresented in their training data, is essential for safe deployment. Future work may explore whether suitability filters can guide prompt design, model selection, or fine-tuning in LLM pipelines.
+
+\subsection{Agentic Active Inference and Uncertainty Reduction}
+
+\paragraph{From passivity to agency.} While the selective prediction paradigm studied in this thesis focuses on \emph{when to abstain}, it leaves open the question of \emph{how to reduce uncertainty}. A natural evolution is to equip models with the ability to seek additional information—by asking questions, querying sensors, searching knowledge bases, or exploring their environment—to resolve ambiguity.
+
+\paragraph{Framing uncertainty reduction as a decision problem.} Techniques from reinforcement learning (RL) and active learning can be used to train agents that take actions based on expected reductions in uncertainty. For instance, an agent could be rewarded for acquiring information that flips a prediction from “abstain” to “confidently correct.” This decision-theoretic framing can also be applied to human–AI collaboration, where the model learns to defer, request help, or generate clarification prompts when confidence is low.
+
+\paragraph{Conversational and retrieval-augmented strategies.} In LLMs, uncertainty-aware behaviors could manifest as clarification questions, dynamic retrieval augmentation, or self-initiated chain-of-thought prompting. Developing architectures that interleave inference and uncertainty resolution—especially in constrained or time-sensitive settings—is a promising direction for building more capable and cautious agents.
+
+\subsection{Meta-Learning and Adaptation from Limited Data}
+
+\paragraph{Learning to generalize—and to abstain.} While this thesis emphasized abstention as a way to avoid high-risk errors, meta-learning aims to generalize quickly from sparse supervision. These goals are complementary: abstention can flag unknown situations, while meta-learning can help the model recover by adapting to them. Bridging these ideas could produce systems that abstain intelligently and adapt efficiently.
+
+\paragraph{Uncertainty-aware meta-learning.} In few-shot learning, incorporating uncertainty into task embeddings, attention mechanisms, or meta-objectives could improve both generalization and calibration. For example, tasks that induce high predictive entropy during inner-loop adaptation might be assigned more weight during meta-training. Similarly, meta-learned abstention thresholds could allow models to gracefully defer in low-data regimes.
+
+\paragraph{Structure, causality, and compositionality.} Understanding how tasks relate—e.g., through causal or hierarchical structures—can reduce the sample complexity of adaptation. Integrating uncertainty estimates into these structural models may allow systems to reason about which subtasks are novel, which are familiar, and which are ambiguous.
+
+\subsection{Generating High-Quality Supervised Signals through Synthetic Data}
+
+\paragraph{Data as a bottleneck.} As we showed in resource-constrained deployment settings, careful calibration and uncertainty estimation can allow models to operate under tight supervision budgets. Yet, collecting high-quality labels remains a major obstacle—especially for rare or ambiguous cases. Synthetic data offers a powerful way to address this gap.
+
+\paragraph{Uncertainty-guided synthetic generation.} One promising strategy is to direct generative models (e.g., diffusion models, LLMs) to produce synthetic examples specifically in areas of high uncertainty. The checkpoint-based instability metrics developed in this thesis could identify such regions, allowing for targeted generation of diverse, informative inputs.
+
+\paragraph{Evaluation and introspection.} Synthetic data is also a tool for probing model behavior. By generating edge cases, adversarial variants, or counterfactuals, we can test whether abstention mechanisms and uncertainty estimates behave sensibly. Combining generation with introspection and calibration metrics could lead to more thorough and stress-tested model evaluation pipelines.
+
+\section{Closing Thoughts}
+
+The ability to quantify, interpret, and manage uncertainty is at the heart of enabling ML systems to \emph{trustworthily} perform real-world tasks. As these systems increase in complexity and deployment scope, so do the potential benefits and risks. By tackling the open questions and challenges described in this chapter—from refining uncertainty metrics at scale to building interactive, adaptive agents that actively reduce their own uncertainty—future research can continue to push the frontier of what is possible in machine learning.
+
+Ultimately, bridging the gap between theoretical guarantees and practical deployment will require a continuous exchange of ideas between researchers, practitioners, regulators, and domain experts. By integrating robust uncertainty quantification with broader trust metrics such as fairness, interpretability, privacy, and security, we can pave the way for machine learning models that are not only powerful and accurate, but also safe, ethical, and beneficial to society.

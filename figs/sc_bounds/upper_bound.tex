@@ -1,0 +1,57 @@
+\begin{tikzpicture}[
+		declare function={}
+		]
+\begin{axis}[%
+  xlabel=Coverage ($c$),
+  ylabel=Selective Accuracy,
+  xmin = -0.1,
+  xmax = 1.1,
+  ymin = -0.1,
+  ymax = 1.25,
+  grid=major,
+  width=8cm,
+  height=5.5cm,
+  tick label style={/pgf/number format/fixed},
+  legend style={at={(0.812,1.001)}, anchor=north},]
+  
+  \newcommand\afull{0.4}
+  \newcommand\afullinccoord{{\afull + (1 - \afull)/2}}
+
+  \addplot+[mark={},line width=2pt,Black,name path=C, domain=0:\afull/2] {1};
+		  
+  \addplot+[mark={},line width=2pt,Black,name path=D, domain=\afull/2:\afull] {15/16*x^2 - 15/8 * x + 107/80};
+  
+  \addplot+[mark={},line width=2pt,Black,name path=E, domain=\afull:1] {15/16*x^2 - 15/8 * x + 107/80};
+  
+  \addplot+[mark={},dashed,line width=2pt,Black,name path=A, domain=0:\afull] {1};
+  \addplot+[mark={},dashed,line width=2pt,Black,name path=B, domain=\afull:1] {\afull/x};
+  \addplot+[draw=none,mark=none,name path=C,domain=0:1] {0};
+  \addplot+[Cyan!25!white] fill between[of=A and C,soft clip={domain=0:\afull}];
+  \addplot+[Orange!25!white] fill between[of=B and C,soft clip={domain=\afull:1}];
+  %\draw [black, line width=1pt, dashed] (\afull,0) -- (\afull, 1.0);
+  \node[black, fill=white] at (1,\afull+0.14) {\footnotesize $a_\text{full}$};
+  \node[black, fill=white] at (\afull,1.13) {\footnotesize $c = a_\text{full}$};
+  
+
+  % \addplot+[black,fill=black] coordinates{(\afull,1)};
+  % \addplot+[black,fill=black] coordinates{(1,\afull)};
+
+  \fill[black] (\afull, 1) circle[radius=2.5pt];
+  \fill[black] (1,\afull) circle[radius=2.5pt];
+
+
+  
+  
+  \addplot+[Black!25!white] fill between[of=A and D,soft clip={domain=0:1}];
+  
+    \addplot+[Black!25!white] fill between[of=B and E,soft clip={domain=0:1}];
+  
+  \draw [->, Orange, line width=2pt] (\afull,0.1) -- (1, 0.1);
+  \draw [->, Cyan, line width=2pt] (0,0.1) -- (\afull, 0.1);
+  \node[Cyan] at (\afull/2,0.25) {\footnotesize correct points};
+  \node[Orange] at (\afullinccoord,0.25) {\footnotesize incorrect points};
+
+  \legend{ \scriptsize \realtradeoff,,, \scriptsize \upperbound,,,,, \scriptsize $\int_0^1 \widehat{\Delta}(c)dc$};
+ 
+\end{axis}
+\end{tikzpicture}
