@@ -1,7 +1,7 @@
 % !TeX TS-program = pdflatex
 % !BIB TS-program = biber
 % !TeX root = main.tex
-\documentclass{ut-thesis}
+\documentclass[dvipsnames]{ut-thesis}
 % packages
 \usepackage[colorlinks, citecolor=teal, linkcolor=teal]{hyperref} % for links
 % \usepackage[backend=biber]{biblatex} % for references
@@ -19,7 +19,7 @@
 \usepackage{booktabs}
 
 \usepackage{graphicx}       % For graphics inclusion
-\usepackage[dvipsnames]{xcolor}         % For colored text
+%\usepackage[dvipsnames]{xcolor}         % For colored text
 \usepackage{lmodern}        % Better fonts
 % \usepackage{titlesec}       % For customizing section titles
 \usepackage{microtype}
@@ -271,7 +271,7 @@
 \author{Stephan Rabanser}
 \title{Uncertainty-Driven Reliability: Selective Prediction and Trustworthy Deployment in Modern Machine Learning}
 \degree{Doctor of Philosophy}
-\department[]{Department of Computer Science}
+\department{Department of Computer Science}
 \gradyear{2025}
 % reference database
 % \addbibresource{main.bib}
@@ -306,7 +306,7 @@
     \input{chapters/appendices/07_confidential_guardian}
     % \input{chapters/appendices/08_gatekeeper}
   \backmatter
-  \bibliography{main}
+  \bibliography{references}
 \bibliographystyle{icml2025}
   % \printbibliography[heading=bibintoc]
   % \lipsum[1-6]
