@@ -5,10 +5,10 @@
 
 This work introduces a decomposition of the selective-classification gap into measurable components—Bayes noise, approximation error, ranking error, statistical noise, and deployment slack—offering practical guidance for improving abstaining classifiers. By diagnosing which source dominates in a given setting, our method supports more targeted model design and evaluation.
 
-\paragraph{Positive implications.}
+\paragraph{Positive Implications.}
 Our decomposition improves transparency and supports safer deployment in high-stakes domains by helping practitioners understand whether their model underperforms due to ranking, capacity, or robustness. Because each gap component is explicitly quantified, our approach can serve as a tool for model debugging, monitoring, and fairer benchmarking.
 
-\paragraph{Potential risks.}
+\paragraph{Potential Risks.}
 Selective classifiers may disproportionately defer on certain groups, amplifying disparities—a risk previously observed by~\citet{jones2020selective}. Additionally, institutions may exploit uncertainty estimates to justify \emph{strategic abstention}—deliberately deferring on individuals they prefer not to serve~\citep{rabanser2025confidential}. While our framework identifies which part of the gap drives poor performance, it does not control how deferred inputs are handled.
 
 \paragraph{Mitigations.}
@@ -29,7 +29,7 @@ We hope this work encourages more precise evaluations of selective classifiers, 
 
 We restate the theorem for convenience.
 
-\begin{theorem}[Selective classification Gap; detailed]
+\begin{theorem}[Selective classification gap; detailed]
 Fix a coverage level \(c\in(0,1]\), a score function \(g(\cdot,h)\),
 and its associated population threshold
 \(t_c\) satisfying \(\Pr\bigl(g(X,h)\ge t_c\bigr)=c\).
@@ -186,7 +186,7 @@ if and only if \(A_c=A_c^{\star}\).
 This completes the proof.
 \end{proof}
 
-\paragraph{Multiclass remark.}
+\paragraph{Multiclass Remark.}
 For \(K>2\) labels, define
 \(\eta(x)=\bigl(\Pr(Y=1\mid x),\dots,\Pr(Y=K\mid x)\bigr)\)
 and its complement confidence
@@ -214,7 +214,7 @@ Although \(\arg\max_j z_j(x)\) is invariant to~\(T\), the \emph{values}
 \emph{cross‑sample} ordering.  Below we give a sufficient and necessary
 condition for such a swap and illustrate its rarity.
 
-\paragraph{Two‑sample analysis.}
+\paragraph{Two‑sample Analysis.}
 Consider two inputs \(x_1,x_2\) with logit vectors
 \(z^{(1)},z^{(2)}\in\mathbb{R}^K\) and corresponding maximum logits
 \(a\;{:=}\;\max_j z^{(1)}_j\) and \(b\;{:=}\;\max_j z^{(2)}_j\).
@@ -241,7 +241,7 @@ for any \(T\).  Hence reranking requires \emph{both} different
 logit‑margin shapes \emph{and} a scaling factor large enough to change
 their relative sigmoidal compressions.
 
-\paragraph{Illustrative example.}
+\paragraph{Illustrative Example.}
 Let \(K=3\) and
 \begin{equation}
 z^{(1)}=(3.0,0.0,0.0),\qquad
@@ -259,7 +259,7 @@ s_3(x_1)=0.731 < 0.750 = s_3(x_2),
 so the ordering flips---temperature scaling would now accept \(x_2\)
 before \(x_1\).
 
-\paragraph{How likely is a swap?}
+\paragraph{How Likely Is a Swap?}
 Let the top‑two logit gap
 \(
 \delta(x)=z_{\max}(x)-z_{2\text{nd}}(x)
@@ -273,7 +273,7 @@ some \(\alpha>0\).  Consequently the expected fraction of swapped pairs
 is negligible, explaining why in our experiments the
 accuracy--coverage curve moves imperceptibly after temperature scaling.
 
-\paragraph{Practical implication.}
+\paragraph{Practical Implication.}
 Temperature scaling can \emph{in principle} tighten the
 selective‑classification gap, but only for the vanishingly small subset
 of inputs whose logit margins are nearly tied.  To obtain a meaningful
@@ -596,7 +596,7 @@ The canonical baseline is the \emph{self‑entropy predictor}
 
 \begin{definition}[Advantage over the self‑entropy predictor]
 \label{def:advantage}
-The (squared‑error) \emph{advantage} of a loss predictor \(\mathrm{LP}\) is
+The (squared‑error) advantage of a loss predictor \(\mathrm{LP}\) is
 \begin{equation}
 \mathrm{Adv}(\mathrm{LP})
 :=\E\bigl[(\ell-\mathrm{SEP})^{2}\bigr]
@@ -617,7 +617,7 @@ Multicalibration is a fine-grained notion of reliability that asks not just for 
 
 \begin{definition}[Multicalibration Error]
 \label{def:mce}
-Let \(C\) be a class of weighting functions \(c\colon\Phi\to[-1,1]\), and let \(h\colon\mathcal{X} \to [0,1]\) be a classifier. The \emph{multicalibration error} of \(h\) with respect to \(C\) is defined as
+Let \(C\) be a class of weighting functions \(c\colon\Phi\to[-1,1]\), and let \(h\colon\mathcal{X} \to [0,1]\) be a classifier. The multicalibration error of \(h\) with respect to \(C\) is defined as
 \begin{equation}
 \mathrm{MCE}(C,h)
 \;:=\;
@@ -767,8 +767,8 @@ Conversely, a large loss-prediction advantage is a certificate of poor ranking a
 
 \begin{takeaway}
 Loss prediction and multicalibration offer a principled lens on
-selective prediction: \emph{if you cannot beat your own self‑entropy
-predictor, you are already close to the oracle frontier}.  Otherwise,
+selective prediction: if you cannot beat your own self‑entropy
+predictor, you are already close to the oracle frontier.  Otherwise,
 the loss predictor pinpoints exactly which inputs are being mis‑ranked
 and by how much, providing both a diagnostic and a blueprint for
 tightening the selective‑classification gap.
@@ -834,7 +834,7 @@ LossPredictor(
     \label{fig:adv_te}
 \end{figure}
 
-\paragraph{Key observations.}
+\paragraph{Key Observations.}
 On CIFAR-10 (left panel of Figure~\ref{fig:adv_te}), all methods stay close to zero $\Delta\mathrm{Adv}_{\mathrm{test}}$, indicating that the model's own confidence scores already capture most of the available ranking signal. On CIFAR-100 (middle panel), \texttt{MSP} and \texttt{TEMP} exhibit large positive shifts in LP advantage, suggesting that a dedicated loss predictor can substantially improve ranking—consistent with a larger gap from the oracle. By contrast, \texttt{SAT} and \texttt{DE} remain near zero, indicating that their confidence scores are already well aligned with correctness. On StanfordCars (right panel), the gap widens even further: both \texttt{MSP} and \texttt{TEMP} allow for significant gains via loss prediction, and even \texttt{SAT} leaves nontrivial room for improvement. Only \texttt{DE} consistently resists such gains, implying that deep ensembling is uniquely effective at preserving reliable ranking in high-variance domains.
 
 \paragraph{Conclusion.}  

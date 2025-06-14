@@ -60,29 +60,29 @@ Uncertainty quantification (UQ) is the process of identifying, quantifying, and 
 \subsection{Importance of Uncertainty Quantification}
 Before diving into the specific reasons why uncertainty quantification is vital, it is helpful to note that UQ serves as a bridge between raw model output and actionable insight. While modern machine learning models can make highly accurate predictions, they do not inherently communicate their confidence level or the extent of variability within the data (i.e., Bayes error or irreducible error). This gap can be critical in real-world scenarios where misunderstandings or misapplications of model outputs can have significant consequences.
 
-\paragraph{Decision-making under risk.} In real-world applications like autonomous driving, healthcare, and finance, decisions often come with high stakes. Errors can lead to costly or even life-threatening outcomes, so having a clear sense of how certain a model’s predictions are is essential for risk management. For instance, in a clinical setting, an automated diagnostic tool that flags images as “uncertain” can trigger a secondary, human-led evaluation, thereby reducing the risk of misdiagnosis.
-\paragraph{Model validation and trust.} A core challenge in deploying machine learning systems is understanding when and where they might fail. Uncertainty metrics, such as confidence intervals or Bayesian posterior distributions, help illuminate whether a model is systematically overconfident or underconfident in its predictions. Such insights guide model improvements (e.g., collecting more targeted training data) and bolster stakeholders’ trust by transparently indicating areas where the model may be less reliable.
-\paragraph{Resource allocation.} In settings with finite resources---for example, bandwidth, computational capacity, or expert availability---uncertainty estimates help allocate those resources more effectively. If a model can identify the instances where it is less certain, additional measures---such as further data collection, human review, or more computationally expensive algorithms---can be reserved for those high-uncertainty cases. This targeted approach prevents unnecessary overhead for predictions deemed sufficiently reliable.
-\paragraph{Generalization and reliability.} Overfitting, adversarial inputs, and domain shifts pose ongoing challenges in machine learning. When a model encounters data that differ from its training distribution, having robust uncertainty estimates can provide an early warning sign. For example, a model trained on data from one domain may exhibit higher uncertainty when faced with data from a new domain with differing characteristics. Such signals can prompt efforts to gather additional training data or adapt the model to the new distribution, ultimately improving its overall reliability and generalization.
+\paragraph{Decision-Making Under Risk.} In real-world applications like autonomous driving, healthcare, and finance, decisions often come with high stakes. Errors can lead to costly or even life-threatening outcomes, so having a clear sense of how certain a model’s predictions are is essential for risk management. For instance, in a clinical setting, an automated diagnostic tool that flags images as “uncertain” can trigger a secondary, human-led evaluation, thereby reducing the risk of misdiagnosis.
+\paragraph{Model Validation and Trust.} A core challenge in deploying machine learning systems is understanding when and where they might fail. Uncertainty metrics, such as confidence intervals or Bayesian posterior distributions, help illuminate whether a model is systematically overconfident or underconfident in its predictions. Such insights guide model improvements (e.g., collecting more targeted training data) and bolster stakeholders’ trust by transparently indicating areas where the model may be less reliable.
+\paragraph{Resource Allocation.} In settings with finite resources---for example, bandwidth, computational capacity, or expert availability---uncertainty estimates help allocate those resources more effectively. If a model can identify the instances where it is less certain, additional measures---such as further data collection, human review, or more computationally expensive algorithms---can be reserved for those high-uncertainty cases. This targeted approach prevents unnecessary overhead for predictions deemed sufficiently reliable.
+\paragraph{Generalization and Reliability.} Overfitting, adversarial inputs, and domain shifts pose ongoing challenges in machine learning. When a model encounters data that differ from its training distribution, having robust uncertainty estimates can provide an early warning sign. For example, a model trained on data from one domain may exhibit higher uncertainty when faced with data from a new domain with differing characteristics. Such signals can prompt efforts to gather additional training data or adapt the model to the new distribution, ultimately improving its overall reliability and generalization.
 
 \subsection{Approaches to Uncertainty Quantification}
 There are several approaches to UQ in machine learning, reflecting different statistical and computational philosophies:
 
-\paragraph{Bayesian methods.}
+\paragraph{Bayesian Methods.}
 In Bayesian inference, model parameters are treated as random variables~\citep{bishop2006pattern}. Given a set of observed data $\mathcal{D}$ and a parameter vector $\theta$, Bayes' theorem allows us to compute the posterior distribution:
 \begin{equation}
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})},
 \end{equation}
 where $p(\theta)$ is the prior, $p(\mathcal{D} \mid \theta)$ is the likelihood, and $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta)p(\theta)d\theta$ is the evidence. Techniques such as Markov Chain Monte Carlo (MCMC)~\citep{geyer1992practical} simulate draws from this posterior distribution, while Variational Inference (VI)~\citep{blei2017variational} seeks a tractable family of distributions $q(\theta)$ that approximates $p(\theta \mid \mathcal{D})$. Bayesian neural networks~\citep{blundell2015weight} extend these concepts to deep learning by placing priors over the network weights.
 
-\paragraph{Frequentist and distribution-free methods.}
+\paragraph{Frequentist and Distribution-Free Methods.}
 Distribution-free approaches, like conformal prediction~\citep{shafer2008tutorial, fontana2023conformal}, aim to create prediction sets with finite-sample guarantees under assumptions such as exchangeability. For a new observation $\bm{x}$, conformal prediction constructs a set $\Gamma(\bm{x})$ such that
 \begin{equation}
 \Pr\{ Y \in \Gamma(\bm{X}) \} \;\geq\; 1 - \alpha,
 \end{equation}
 where $\alpha$ is a pre-specified significance level and $\bm{X}$ is the random variable. The construction typically involves calculating a nonconformity score for each example in a calibration set and then using these scores to determine the appropriate quantile for new predictions.
 
-\paragraph{Ensemble methods.}
+\paragraph{Ensemble Methods.}
 Ensemble techniques~\citep{lakshminarayanan2017simple} combine the outputs of multiple independently trained models to capture uncertainty. Suppose we have an ensemble of $M$ models, $\{ f_1, f_2, \dots, f_M \}$. The aggregated prediction can be written as:
 \begin{equation}
 \hat{y} \;=\; \frac{1}{M} \sum_{m=1}^{M} f_m(\bm{x}),
@@ -93,14 +93,14 @@ and the empirical variance, which serves as an uncertainty estimate, is given by
 \end{equation}
 Although not inherently probabilistic, this approach provides a practical measure of prediction variability, particularly in high-dimensional settings.
 
-\paragraph{Bootstrapping and resampling.}
+\paragraph{Bootstrapping and Resampling.}
 Bootstrapping involves generating multiple resampled datasets $\{\mathcal{D}^{(1)}, \mathcal{D}^{(2)}, \dots, \mathcal{D}^{(B)}\}$ from the original dataset $\mathcal{D}$ by sampling with replacement~\citep{breiman1996bagging}. For each bootstrap sample $\mathcal{D}^{(b)}$, a model $f^{(b)}$ is trained. The distribution of the model outputs at a given point $\bm{x}$ is then approximated as:
 \begin{equation}
 \hat{p}(y \mid \bm{x}) \;\approx\; \frac{1}{B} \sum_{b=1}^{B} \delta\bigl(y - f^{(b)}(\bm{x})\bigr),
 \end{equation}
 where $\delta$ denotes the Dirac delta function. This empirical distribution provides an estimate of the uncertainty in the model's predictions due to dataset variability.
 
-\paragraph{Calibrated models.}
+\paragraph{Calibrated Models.}
 Calibration techniques adjust a model’s predicted probabilities to better reflect true empirical frequencies. One common method is \emph{Platt scaling}~\citep{platt1999probabilistic}, which applies a sigmoid transformation to the model output:
 \begin{equation}
 p_{\text{cal}}(y \mid \bm{x}) \;=\; \frac{1}{1 + \exp\bigl(-a \, f(\bm{x}) - b\bigr)},
@@ -149,7 +149,7 @@ Selective prediction extends the standard supervised classification framework by
 \subsection{Key Theoretical Results}
 Seminal works such as \citet{chow1957optimum} and \citet{el2010foundations} established theoretical foundations for selective prediction and derived performance bounds. Below, we provide more formal statements of three key results.
 
-\paragraph{Chow's rule.}
+\paragraph{Chow's Rule.}
 In a classification problem with a zero-one loss plus a reject penalty $c_r > 0$, let $p(y \mid \bm{x})$ denote the posterior probability of class $y$ given input $\bm{x}$. Then Chow's rule \citep{chow1957optimum} specifies that the optimal policy is to reject whenever the highest posterior probability falls below a threshold determined by $c_r$. More precisely, define
 \begin{equation}
 \hat{y}(\bm{x}) \;=\; \arg\max_{y\in\mathcal{Y}} \;p(y \mid \bm{x}),
@@ -167,14 +167,14 @@ p_{\max}(\bm{x}) \;=\; \max_{y\in\mathcal{Y}} \; p(y \mid \bm{x}).
 \end{equation}
 where the threshold $\theta(c_r)$ depends on the reject cost $c_r$ and the class prior probabilities. By rejecting low-confidence instances, this rule minimizes the expected combined cost of misclassifications and rejections.
 
-\paragraph{Coverage guarantees.}
+\paragraph{Coverage Guarantees.}
 In a \emph{distribution-free} setting, conformal prediction provides a systematic way to construct prediction sets $\Gamma(\bm{x})$ with finite-sample coverage guarantees, assuming i.i.d. data and certain mild conditions (e.g., exchangeability). Formally, for a given miscoverage rate $\alpha \in (0,1)$, conformal prediction ensures:
 \begin{equation}
 \Pr_{\bm{x}, y}\bigl\{ y \notin \Gamma(\bm{x}) \bigr\} \;\le\; \alpha
 \end{equation}
 with high probability over the random draw of a calibration set. One can interpret a ``reject'' as returning either an empty set $\Gamma(\bm{x}) = \varnothing$ or a set so large that it does not provide a useful prediction. This approach generalizes to both classification and regression contexts, offering a principled way to balance coverage against set size (and hence confidence).
 
-\paragraph{PAC-style bounds.}
+\paragraph{PAC-Style Bounds.}
 Within the Probably Approximately Correct (PAC) framework, one can analyze selective classification by bounding the probability that the error on the covered set exceeds a given threshold. Let $R(f,g)$ be the expected error of a selective classifier $(f,g)$ on the subset of instances it does not reject. Under typical PAC assumptions (i.i.d. samples and bounded loss), there exist results showing that, with high probability over the training set of size $n$,
 \begin{equation}
 R(f,g) \;\le\; \epsilon \quad \text{and} \quad \text{coverage}(f,g) \;\geq\; 1-\alpha
@@ -183,14 +183,14 @@ for sufficiently large $n$~\citep{cortes2016learning}. Here, $\epsilon$ and $\al
 
 \subsection{Common Selective Prediction Techniques}
 
-\paragraph{Softmax Response (\sr)} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of a prediction model $f$ as the selection score:
+\paragraph{Softmax Response (\sr).} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of a prediction model $f$ as the selection score:
 \begin{equation}
 	g_{\sr}(\bm{x}, f) = \max_{c \in C} f(\bm{x})
 \end{equation}
 Note that we assume here that $f$ produces a categorical distribution over $C$ classes. While this method is easy to implement and does not incur any additional cost, \sr has been found to be overconfident on ambiguous, hard-to-classify, or unrecognizable inputs.
 
-\paragraph{SelectiveNet (\sn)} 
-A variety of SC methods have been proposed that leverage explicit architecture and loss function adaptations. For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies the model architecture to jointly optimize $(f,g)$ while targeting the model at a desired coverage level~$c_\text{target}$. The augmented model consists of a representation function $r: \mathcal{X} \rightarrow \mathbb{R}^L$ mapping inputs to latent codes and three additional functions: (i) the \emph{prediction} function $f: \mathbb{R}^L \rightarrow \mathbb{R}^C$ for the classification task targeted at~$c_\text{target}$; (ii) the \emph{selection} function $g: \mathbb{R}^L \rightarrow [0,1]$ representing a continuous approximation of the accept/reject decision for $\bm{x}$; and (iii) an additional \emph{auxiliary} function $h: \mathbb{R}^L \rightarrow \mathbb{R}^C$ trained for the unconstrained classification tasks. This yields the following losses:
+\paragraph{SelectiveNet (\sn).} 
+A variety of selective classification methods have been proposed that leverage explicit architecture and loss function adaptations. For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies the model architecture to jointly optimize $(f,g)$ while targeting the model at a desired coverage level~$c_\text{target}$. The augmented model consists of a representation function $r: \mathcal{X} \rightarrow \mathbb{R}^L$ mapping inputs to latent codes and three additional functions: (i) the \emph{prediction} function $f: \mathbb{R}^L \rightarrow \mathbb{R}^C$ for the classification task targeted at~$c_\text{target}$; (ii) the \emph{selection} function $g: \mathbb{R}^L \rightarrow [0,1]$ representing a continuous approximation of the accept/reject decision for $\bm{x}$; and (iii) an additional \emph{auxiliary} function $h: \mathbb{R}^L \rightarrow \mathbb{R}^C$ trained for the unconstrained classification tasks. This yields the following losses:
  \begin{align}
  	\mathcal{L} & = \alpha \mathcal{L}_{f,g} + (1-\alpha) \mathcal{L}_h \\
  	\mathcal{L}_{f,g} & = \frac{\frac{1}{M}\sum_{m=1}^{M} \ell( f \circ r(\bm{x}_m) , y_m)}{\text{cov}(f,g)} + \lambda \max(0, c - \text{cov}(f,g))^2 \\
@@ -201,23 +201,23 @@ A variety of SC methods have been proposed that leverage explicit architecture a
  	g_{\sn}(\bm{x}, f) = \sigma(g \circ r(\bm{x})) = \frac{1}{1 + \exp(g \circ r(\bm{x}))}
  \end{equation}
 
- \paragraph{Self-Adaptive Training (\sat)}
+ \paragraph{Self-Adaptive Training (\sat).}
  Alternatively, prior works like Deep Gamblers~\citep{liu2019deep} and \emph{Self-Adaptive Training}~\citep{huang2020self} have also considered explicitly modeling the abstention class $\bot$ and adapting the optimization process to provide a learning signal for this class. For instance, \emph{Self-Adaptive Training} (\sat) incorporates information obtained during the training process into the optimization itself by computing and monitoring an exponential moving average of training point predictions over the training process. Samples with high prediction uncertainty are then used for training the abstention class. To ensure that the exponential moving average captures the true prediction uncertainty, an initial burn-in phase is added to the training procedure. This delay allows the model to first optimize the non-augmented, \ie original $C$-class prediction task and optimize for selective classification during the remainder of the training process. The updated loss is defined as:
  \begin{equation}
  	\mathcal{L} = -\frac{1}{M}\sum_{m=1}^{M} \left ( t_{i,y_i}\log p_{i,y_i} + (1-t_{i,y_i})\log p_{i,C+1} \right )
  \end{equation}
-The rejection/abstention decision is then determined by the degree of confidence in the rejection class:
+The abstention decision is then determined by the degree of confidence in the rejection class:
 \begin{equation}
 	g_{\sat}(\bm{x}, f) = f(\bm{x})_{C+1}
 \end{equation}
 
- \paragraph{Deep Ensembles (\de)}
+ \paragraph{Deep Ensembles (\de).}
  Finally, ensemble methods combine the information content of $M$ models into a single final model. Since these models approximate the variance of the underlying prediction problem, they are often used for the purpose of uncertainty quantification and, by extension, \selp. The canonical instance of this approach for deep learning based models, \emph{Deep Ensembles}~(\de)~\citep{lakshminarayanan2017simple}, trains multiple models from scratch with varying initializations using a proper scoring rule and adversarial training. Then, after averaging the predictions made by the model, the softmax response (\sr) mechanism is applied:
  \begin{equation}
  	g_{\de}(\bm{x}, f) = \max_{c \in C} \frac{1}{M} \sum_{m=1}^{M} f_{\bm{\theta}_{m,T}}(\bm{x}).
  \end{equation}
  
- \paragraph{Monte-Carlo Dropout (\mcdo)} 
+ \paragraph{Monte-Carlo Dropout (\mcdo).} 
   To overcome the computational cost of estimating multiple models from scratch, \emph{Monte-Carlo Dropout} (\mcdo) \citep{gal2016dropout} allows for bootstrapping of model uncertainty of a dropout-equipped model at test time. While dropout is predominantly used during training to enable regularization of deep neural nets, it can also be used at test time to yield a random sub-network of the full neural network. Concretely, given a model $f$ with dropout-probability $o$, we can generate $M$ random sub-networks at test-time by deactivating a fraction $o$ of nodes. For a given test input $\bm{x}$ we can then average the outputs over all models and apply softmax response (\sr):
  \begin{equation}
  	g_{\mcdo}(\bm{x}, f) = \max_{c \in C} \frac{1}{Q} \sum_{q=1}^{Q} f_{o(\bm{\theta}_{T})}(\bm{x})
@@ -244,16 +244,16 @@ The rejection/abstention decision is then determined by the degree of confidence
 \subsection{Challenges and Trade-offs}
 In selective prediction, a model’s performance depends not only on its accuracy when it decides to predict but also on how frequently it abstains. This leads to a fundamental \emph{coverage-utility trade-off}: increasing coverage (i.e., predicting on more samples) can degrade average performance, whereas being too selective may ignore a large portion of the data. In addition, various practical factors such as calibration, cost specification, and the nature of the output space further complicate the deployment of selective classifiers in real-world applications.
 
-\paragraph{Calibration vs.\ thresholding.}
+\paragraph{Calibration vs.\ Thresholding.}
 A common approach to selective prediction is to set a confidence threshold below which the model abstains. However, if the model’s confidence scores are poorly calibrated, even a well-chosen threshold may yield suboptimal coverage and performance. Calibration techniques (e.g., Platt scaling or isotonic regression) are often necessary to align predicted confidence with actual likelihoods of correctness. Striking the right balance between calibration and thresholding is crucial for optimizing both utility (accuracy on covered samples) and coverage.
 
-\paragraph{Data distribution shifts.}
+\paragraph{Data Distribution Shifts.}
 In practice, data encountered during deployment may differ substantially from the training distribution. Under such domain shifts, confidence estimates can become unreliable, leading the gating mechanism to either abstain too frequently or incorrectly cover samples outside the training distribution. Techniques that adapt or re-estimate confidence under shifting conditions—such as online calibration or domain adaptation—remain an active area of research, aiming to preserve the coverage-utility trade-off even in evolving environments.
 
-\paragraph{Cost specification.}
+\paragraph{Cost Specification.}
 Selective prediction often relies on a clear notion of the relative costs of rejection and misclassification. However, specifying these costs can be non-trivial, as it depends on domain knowledge, user preferences, and application-specific constraints. For instance, in a medical setting, the cost of a missed diagnosis may far outweigh the inconvenience of additional tests. An inaccurate cost specification can skew the thresholding decisions, leading to suboptimal coverage and utility outcomes.
 
-\paragraph{Complex outputs.}
+\paragraph{Complex Outputs.}
 While selective classification is well-understood for simple categorical outputs, tasks such as semantic segmentation or other structured prediction problems pose additional difficulties. Rejecting an entire structured output may be too coarse, yet partial rejections introduce substantial complexity into model design and training protocols. Extending selective prediction methods to these richer output spaces requires careful definition of what abstaining means (e.g., rejecting certain regions of an image segmentation vs.\ rejecting the entire image) and how to maintain favorable coverage-utility characteristics.
 
 

@@ -160,7 +160,7 @@ We characterize the optimal performance achievable by a selective classifier giv
 
 \begin{definition}[Perfect Ordering Upper Bound~\citep{geifman2018bias, rabanser2023training}]
 \label{def:poub}
-Fix a base classifier \(h\) whose \emph{full‑coverage} (standard) accuracy is
+Fix a base classifier \(h\) whose full‑coverage (standard) accuracy is
 \(a_{\text{full}}:=\Pr\bigl(h(X)=Y\bigr)\in[0,1]\).
 For any desired coverage level \(c\in(0,1]\), the best selective
 accuracy—achieved by accepting the \(c\)-fraction of points with the \emph{highest}
@@ -182,13 +182,13 @@ This piecewise curve (see Figure~\ref{fig:bounds_overview}) traces an \emph{orac
 \label{def:gap}
 Let \((h,g)\) be a selective classifier with full‑coverage accuracy 
 \(a_{\mathrm{full}}=\Pr(h(X)=Y)\).  For a coverage level \(c\in(0,1]\), let
-\(\tau_c\) be the threshold satisfying \(\Pr\bigl(g(X,h)\ge\tau_c\bigr)=c\).  The \emph{selective accuracy} at coverage \(c\) is
+\(\tau_c\) be the threshold satisfying \(\Pr\bigl(g(X,h)\ge\tau_c\bigr)=c\).  The selective accuracy at coverage \(c\) is
 \(
 \mathrm{acc}_c(h,g)
 :=
 \Pr\bigl(h(X)=Y \;\bigm|\; g(X,h)\ge\tau_c\bigr).
 \)
-The \emph{selective classification gap} at coverage \(c\) is then defined as the deviation from the perfect-ordering upper bound:
+The selective classification gap at coverage \(c\) is then defined as the deviation from the perfect-ordering upper bound:
 \begin{equation}
 \Delta(c)
 :=
@@ -268,7 +268,7 @@ the \emph{population threshold}, and write the
 \(A_c:=\{x:g(x,h)\ge t_c\}\).  
 The oracle that attains the perfect‑ordering bound accepts $A_c^{\star}:=\bigl\{x:\eta_h(x)\text{ is among the largest }c\text{-fraction}\bigr\}$.
 
-\textbf{Error terms.} We isolate the following sources of error affecting selective prediction performance:
+\textbf{Error Terms.} We isolate the following sources of error affecting selective prediction performance:
 \begin{align}
 \varepsilon_{\text{Bayes}}(c)
 &:=\E\Bigl[1-\max\{\eta(X),1-\eta(X)\}\;\Bigm|\;X\in A_c\Bigr],
@@ -288,7 +288,7 @@ parameter, and \(C>0\) an absolute constant. Intuitively, \(\varepsilon_{\text{B
 
 \begin{remark}[Distance to a Perfect Ranker]
 A natural way to gauge how far the learned acceptance rule is from the oracle is
-the \emph{mass mis-ordered}
+the mass mis-ordered
 \begin{equation}
     D_{\text{rank}}(c)\;:=\;
     \Pr\bigl(X\in A_c^{\star}\setminus A_c\bigr)
@@ -362,7 +362,7 @@ As shown in Theorem~\ref{thm:gap}, the selective classification gap includes a \
 
 \begin{definition}[Perfect Calibration]
 \label{def:calibration}
-For each input \(x\) let a model produce a predicted label \(\hat y(x)\) and an associated confidence score \(s(x)\in[0,1]\). We say the model is \emph{perfectly calibrated} if
+For each input \(x\) let a model produce a predicted label \(\hat y(x)\) and an associated confidence score \(s(x)\in[0,1]\). We say the model is perfectly calibrated if
 \begin{equation}
   \Pr\bigl(Y = \hat y(X)\;\bigm|\;s(X)=t\bigr) \;=\; t \qquad \text{for every confidence level}\ t\in[0,1].
   \label{eq:perfect-cal}
@@ -379,7 +379,7 @@ Practical estimators approximate~\eqref{eq:perfect-cal} via a post-hoc map \(\ph
 where \(I_b\) is the set of indices in bin \(b\), \(n\) is the total number
 of examples, and \(B\) is the number of bins.
 
-\textbf{Monotone score-level calibration leaves the gap intact.}
+\textbf{Monotone Score-Level Calibration Leaves the Gap Intact.}
 Temperature scaling~\citep{guo2017calibration}, isotonic regression~\citep{zadrozny2002transforming}, and histogram
 binning~\citep{zadrozny2001obtaining} all fit a \emph{monotone} \(\phi\colon[0,1]\to[0,1]\) that preserves score ordering.
 Because monotone maps preserve ordering,
@@ -395,7 +395,7 @@ and the gap
 are \emph{unchanged}.
 Monotone calibration thereby reduces the approximation error \(\varepsilon_{\text{approx}}(c)\) in Section~\ref{sec:formal-gap} but leaves the ranking error \(\varepsilon_{\text{rank}}(c)\) untouched.
 
-\textbf{Why temperature scaling \texorpdfstring{\emph{can}}{} reorder but rarely does.}
+\textbf{Why Temperature Scaling \texorpdfstring{\emph{Can}}{} Reorder But Rarely Does.}
 Temperature scaling, the most widely used post-hoc calibration technique, divides every logit vector
 \(z(x)\in\mathbb{R}^K\) by a scalar \(T>0\),
 \begin{equation}
@@ -407,8 +407,8 @@ max-probability after rescaling. In theory this breaks the monotone
 ranking guarantee; in practice such ties occur only when the runner-up logit gaps are extremely small. Consequently, the induced change in the
 accuracy–coverage curve is negligible—a pattern we also observe empirically. See Appendix~\ref{app:ts-rerank} for an extended discussion.
 
-\textbf{Moving the gap requires non-monotone scoring.}
-To reduce the selective classification gap \(\Delta(c)\), one must go beyond simple monotone calibration and actively modify the acceptance ordering:
+\textbf{Moving the Gap Requires Non-Monotone Scoring.}
+To reduce the selective classification gap \(\Delta(c)\), one must go beyond simple monotone calibration and actively modify the acceptance ordering through one of the following approaches:
 
 % \vspace{-5pt}
 \begin{itemize}
@@ -416,7 +416,7 @@ To reduce the selective classification gap \(\Delta(c)\), one must go beyond sim
           Techniques such as self-adaptive training (\(\texttt{SAT}\)), deep ensembles (\(\texttt{DE}\)), and learned calibration heads \(g_\psi(x)\) predict correctness scores from hidden representations or multiple model votes. These approaches leverage instance-specific uncertainty and shared feature context to rerank samples that otherwise receive similar raw confidence values.
           
 \item \textbf{Binning or resampling}:  
-      Techniques such as Bayesian Binning into Quantiles (BBQ)~\citep{naeini2015obtaining} and conformal p-value methods~\citep{angelopoulos2021gentle} refine confidence scores by estimating accuracy over adaptive data subsets. Both use empirical statistics—either at the bin level or per example—to recalibrate and reorder predictions, often leading to better ranking.
+      Techniques such as Bayesian Binning into Quantiles (BBQ)~\citep{naeini2015obtaining} and conformal p-value methods~\citep{angelopoulos2021gentle} refine confidence scores by estimating accuracy over adaptive data subsets. Both use empirical statistics—either at the bin level or per example—to recalibrate and reorder predictions, often improving ranking.
 
 
 \item \textbf{Vector/Dirichlet scaling}:  
@@ -427,7 +427,7 @@ To reduce the selective classification gap \(\Delta(c)\), one must go beyond sim
 \end{itemize}
 
 \looseness=-1
-\textbf{Loss prediction as a multicalibration litmus test.}
+\textbf{Loss Prediction as a Multicalibration Litmus Test.}
 A complementary view on how calibration connects to ranking ability starts from \emph{multicalibration}~\citep{hebert2018multicalibration},
 the degree to which a model is calibrated on select subgroups. Recent work by \citet{gollakota2025loss} shows that strong multicalibration is closely tied to a model's ability to \emph{predict its own loss}, an idea seemingly closely related to selective prediction. We formalize this connection in Appendix~\ref{app:loss-pred} and show, both theoretically and empirically, that success or failure at the loss-prediction task corresponds directly to the magnitude of the ranking error \(\varepsilon_{\text{rank}}(c)\). In short, if a model's confidence scores cannot be out-predicted on their own mistakes, they are effectively multicalibrated—and near the oracle frontier.
 
@@ -450,7 +450,7 @@ The decomposition in Theorem~\ref{thm:gap} captures the \emph{intrinsic} sources
   \end{equation}
   Hence, larger shifts in distribution (relative to \(\mathcal{H}\)) lead to wider selective classification gaps.
 \end{enumerate}
-\textbf{Residual slack.}  We absorb remaining implementation‐level effects (threshold‐selection noise, score quantization, etc.) into $\varepsilon_{\text{misc}}(c) :=\varepsilon_{\text{opt}}+\varepsilon_{\text{shift}}(c)$, yielding the streamlined high‐probability bound.
+\textbf{Residual Slack.}  We absorb remaining implementation‐level effects (threshold‐selection noise, score quantization, etc.) into $\varepsilon_{\text{misc}}(c) :=\varepsilon_{\text{opt}}+\varepsilon_{\text{shift}}(c)$, yielding the streamlined high‐probability bound.
 \begin{equation}
   \widehat\Delta(c)
   \;\le\;
@@ -531,6 +531,7 @@ We conduct both synthetic and real-world experiments. For our synthetic results,
   \label{fig:exp_bayes}
 \end{figure}
 
+\looseness=-1
 \emph{Findings.}
 In terms of approximation error, Figure~\ref{fig:exp_appr} demonstrates that limited model capacity leads to larger gaps, while more expressive models yield tighter alignment with the perfect-ordering bound. This suggests that approximation error is a key driver of looseness. In terms of Bayes error, Figure~\ref{fig:exp_bayes} shows that increasing label noise consistently shifts the accuracy--coverage curve downward, indicating that Bayes error introduces an irreducible component to the gap. These results validate the canonical bound (Eq.~\ref{eq:emp-gap-ranking})---large Bayes or approximation error can explain substantial looseness.
 
@@ -601,5 +602,5 @@ We summarize our findings in Table~\ref{tab:cifar100_cal}. While temperature sca
 Building a truly performant selective classifier hinges on understanding and closing the gap between practical models and the oracle perfect-ordering bound.  To answer \emph{what it takes}, we introduce a coverage-uniform selective-classification gap and derive the first finite-sample decomposition that pinpoints exactly five limiting factors: three intrinsic sources—Bayes noise, approximation error, and ranking (calibration) error—and two contingent slack terms—sampling variability and implementation or distribution-shift artifacts.  Our experiments show that each component can be individually measured and, importantly, directly improved: stronger model backbones reduce approximation error, non-monotone or feature-aware scoring shrinks ranking error, and shift-robust training with larger validation sets minimizes residual slack.  Together, these insights provide a clear recipe for designing and evaluating high-performance selective classifiers.
 
 
-\paragraph{Limitations and future work.}
+\paragraph{Limitations and Future Work.}
 While our decomposition cleanly bounds the selective‑classification gap, its error budgets can \emph{interact}—for example, increasing capacity often improves both approximation and ranking—which makes unique attribution challenging. Many \emph{training‑time calibration schemes} (e.g.\ self‑adaptive training, mixup, focal loss) simultaneously affect ranking and full‑coverage accuracy, confounding the separation of budgets. Our experiments focus on \emph{synthetic and vision benchmarks}; extending these insights to language, speech, and large‑scale foundation models would be an important direction. Finally, because our oracle bound and gap are defined for \emph{0–1 loss}, adapting to \emph{asymmetric or class‑dependent cost functions}---often required in high-stakes decision-making---will require generalizing both the bound and its decomposition.  

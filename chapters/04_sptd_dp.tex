@@ -40,7 +40,7 @@ State of the art machine learning (ML) models are gaining rapid adoption in high
 To prevent privacy attacks on ML models, $(\varepsilon, \delta)$ differential privacy (DP)~\citep{dwork2014algorithmic} has emerged as the de-facto standard with widespread usage in both academic and industrial applications. %to limit the amount of privacy leakage from individual data points. 
 
 
-While the introduction of DP successfully protects against privacy attacks, it also limits model utility in practice. For instance, the canonical algorithm for training models with DP, DP-SGD~\citep{abadi2016deep}, clips the per-sample gradient norm and adds carefully calibrated noise. These training-time adaptations frequently lead to degradation in predictive performance in practice. This is especially a problem for datasets containing underrepresented subgroups whose accuracy has been shown to degrade with stronger DP guarantees~\citep{bagdasaryan2019differential}. Faced with this challenge, it is therefore of vital importance to detect samples on which a DP model would predict incorrectly on.% and an active research area.%\my{I don't think you can claim that selective classification boosts performance in general; since it trade-offs accuracy for coverage. I think the use-case of selective classification is of independent interest.}
+While the introduction of DP successfully protects against privacy attacks, it also limits model utility in practice. For instance, the canonical algorithm for training models with DP, DP-SGD~\citep{abadi2016deep}, clips the per-sample gradient norm and adds carefully calibrated noise. These training-time adaptations frequently lead to degradation in predictive performance in practice. This is especially a problem for datasets containing underrepresented subgroups whose accuracy has been shown to degrade with stronger DP guarantees~\citep{bagdasaryan2019differential}. Faced with this challenge, it is therefore of vital importance to detect samples on which a DP model would predict incorrectly.% and an active research area.%\my{I don't think you can claim that selective classification boosts performance in general; since it trade-offs accuracy for coverage. I think the use-case of selective classification is of independent interest.}
 
 One popular technique used to detect inputs that the model would misclassify with high probability is given by the selective classification (SC) framework~\citep{geifman2017selective}: by relying on a model's uncertainty in the correct prediction for an incoming data point, the point is either accepted with the underlying model's prediction, or rejected and potentially flagged for additional downstream evaluation. Hence, SC introduces a trade-off between coverage over the test set (\ie the goal of accepting as many data points as possible) and predictive performance on the accepted points (\ie the goal of making as few mistakes as possible). 
 %\nick{What if a reviewer asks whether this would lead to fairness issue e.g., the model rejects many data points from certain groups. I feel related works may have answered this but just in case the reviewer may not be familiar with them.}
@@ -126,16 +126,16 @@ The above DP bound is governed by two parameters: $\varepsilon \in \mathbb{R}_+$
 
 % \subsubsection{Setup}
 
-\paragraph{Supervised classification.} Our work considers the supervised classification setup: We assume access to a dataset $D = \{(\bm{x}_n,y_n)\}_{n=1}^{N}$ consisting of data points $(\bm{x},y)$ with $\bm{x} \in \mathcal{X} \subseteq \mathbb{R}^d$ and $y \in \mathcal{Y} = \{1, \ldots, C\}$. All data points $(\bm{x},y)$ are sampled independently and identically distributed from the underlying distribution $p$ defined over $\mathcal{X} \times \mathcal{Y}$. The goal is to learn a prediction function $f : \mathcal{X} \rightarrow \mathcal{Y}$ which minimizes the classification risk with respect to the underlying data distribution $p$ as measured by a loss function $\ell : \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$. 
+\paragraph{Supervised Classification.} Our work considers the supervised classification setup: We assume access to a dataset $D = \{(\bm{x}_n,y_n)\}_{n=1}^{N}$ consisting of data points $(\bm{x},y)$ with $\bm{x} \in \mathcal{X} \subseteq \mathbb{R}^d$ and $y \in \mathcal{Y} = \{1, \ldots, C\}$. All data points $(\bm{x},y)$ are sampled independently and identically distributed from the underlying distribution $p$ defined over $\mathcal{X} \times \mathcal{Y}$. The goal is to learn a prediction function $f : \mathcal{X} \rightarrow \mathcal{Y}$ which minimizes the classification risk with respect to the underlying data distribution $p$ as measured by a loss function $\ell : \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$. 
 
-\paragraph{Selective classification.} Selective classification augments the supervised classification setup by introducing a rejection class~$\bot$ via a \textit{gating mechanism}~\citep{yaniv2010riskcoveragecurve}. This mechanism produces a class label from the underlying classifier if the mechanism is confident that the prediction is correct and abstains otherwise. Note that this mechanism is often directly informed by the underlying classifier $f$ and we make this dependence explicit in our notation. More formally, the gating mechanism introduces a selection function $g:\mathcal{X} \times (\mathcal{X} \rightarrow \mathcal{Y}) \rightarrow \mathbb{R}$ which determines if a model should predict on a data point~$\bm{x}$. If the output of $g(\bm{x}, f)$ undercuts a given threshold $\tau$, we return $f(\bm{x})$, otherwise we abstain with decision $\bot$. The joint predictive model is therefore given by:
+\paragraph{Selective Classification.} Selective classification augments the supervised classification setup by introducing a rejection class~$\bot$ via a \textit{gating mechanism}~\citep{yaniv2010riskcoveragecurve}. This mechanism produces a class label from the underlying classifier if the mechanism is confident that the prediction is correct and abstains otherwise. Note that this mechanism is often directly informed by the underlying classifier $f$ and we make this dependence explicit in our notation. More formally, the gating mechanism introduces a selection function $g:\mathcal{X} \times (\mathcal{X} \rightarrow \mathcal{Y}) \rightarrow \mathbb{R}$ which determines if a model should predict on a data point~$\bm{x}$. If the output of $g(\bm{x}, f)$ undercuts a given threshold $\tau$, we return $f(\bm{x})$, otherwise we abstain with decision $\bot$. The joint predictive model is therefore given by:
 \begin{equation}
     (f,g)(\bm{x}) = \begin{cases}
   f(\bm{x})  & g(\bm{x}, f) \leq \tau \\
   \bot & \text{otherwise.}
 \end{cases}
 \end{equation}
-\paragraph{Evaluating SC performance.} The performance of a selective classifier $(f,g)$ is based on two metrics: the \emph{coverage} of $(f,g)$ (corresponding to the fraction of points to predict on) and the \emph{accuracy} of $(f,g)$ on accepted points. Note that there exists a tension between these two performance quantities: naively increasing coverage will lead to lower accuracy while an increase in accuracy will lead to lower coverage. Successful SC methods try to jointly maximize both metrics.% These metrics can be formally defined as follows: 
+\paragraph{Evaluating SC Performance.} The performance of a selective classifier $(f,g)$ is based on two metrics: the \emph{coverage} of $(f,g)$ (corresponding to the fraction of points to predict on) and the \emph{accuracy} of $(f,g)$ on accepted points. Note that there exists a tension between these two performance quantities: naively increasing coverage will lead to lower accuracy while an increase in accuracy will lead to lower coverage. Successful SC methods try to jointly maximize both metrics.% These metrics can be formally defined as follows: 
     \begin{equation}
     \text{cov}_\tau(f,g) = \frac{|\{\bm{x} : g(\bm{x}, f) \leq \tau \}|}{|D|} \qquad \qquad 
     \text{acc}_\tau(f,g) = \frac{|\{\bm{x} : f(\bm{x}) = y, g(\bm{x}, f) \leq \tau \}|}{|\{\bm{x} : g(\bm{x}, f) \leq \tau \}|}
@@ -151,7 +151,7 @@ Each existing selective classification algorithm proposes a $g$ that tries to ma
 
 %\stephan{Will look at a different organization}
 
-\paragraph{Prediction confidence.} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of the final prediction model $f$ as the selection score. To reduce overconfident predictions yielded by this method, confidence calibration~\citep{guo2017calibration} has been proposed.
+\paragraph{Prediction Confidence.} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of the final prediction model $f$ as the selection score. To reduce overconfident predictions yielded by this method, confidence calibration~\citep{guo2017calibration} has been proposed.
 
 \paragraph{Ensembling.} % Prediction Confidence \& Ensemble Methods
 To further improve calibration and to reduce variance, ensemble methods have been proposed which combine the information content of $M$ models into a single final model. The canonical instance of this approach for deep learning based models, \emph{Deep Ensembles}~(\de)~\citep{lakshminarayanan2017simple}, trains multiple models from scratch with varying initializations using a proper scoring rule and adversarial training. Then, after averaging the predictions made by all models, the softmax response (\sr) mechanism is applied. To overcome the computational cost of estimating multiple models from scratch, \emph{Monte-Carlo Dropout} (\mcdo) \citep{gal2016dropout} allows for bootstrapping of model uncertainty of a dropout-equipped model at test time. Another ensembling approach that has recently demonstrated state-of-the-art \selc performance is based on monitoring model evolution during the training process. To that end, \emph{Selective Classification Training Dynamics}~(\sctd)~\citep{rabanser2022selective} records intermediate models produced during training and computes a disagreement score of intermediate predictions with the final prediction. 
@@ -159,12 +159,12 @@ To further improve calibration and to reduce variance, ensemble methods have bee
 %: $g_{\sr}(\bm{x}, f) = \max_{c \in C} f(\bm{x})$. 
 %While this method is easy to implement and does not incur any additional cost, \sr has been found to be overconfident on ambiguous, hard-to-classify, or unrecognizable inputs.
 
-\paragraph{Architecture \& loss function modifications.} 
+\paragraph{Architecture \& Loss Function Modifications.} 
 A variety of SC methods have been proposed that leverage explicit architecture and loss function adaptations. %The purpose of this class of methods is to either modify the hypothesis class or the loss function to enable better \selp. 
 For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies the model architecture to jointly optimize $(f,g)$ while targeting the model at a desired coverage level~$c_\text{target}$. Alternatively, prior works like \emph{Deep Gamblers}~\citep{liu2019deep} and \emph{Self-Adaptive Training}~\citep{huang2020self} have considered explicitly modeling the abstention class $\bot$ and adapting the optimization process to provide a learning signal for this class. For instance, \emph{Self-Adaptive Training} (\sat) incorporates information obtained during the training process into the optimization itself by computing and monitoring an exponential moving average of training point predictions over the training process. Introduced to yield better uncertainty estimates, \citet{liu2020simple} employs weight normalization and replaces the output layer of a neural network with a Spectral-Normalized Neural Gaussian Process to improve data manifold characterization. 
 
-
-\paragraph{Uncertainty for DP models.} An initial connection between differential privacy and uncertainty quantification is explored in \citet{williams2010probabilistic}, which shows that probabilistic inference can improve accuracy and measure uncertainty on top of differentially private models. By relying on intermediate model predictions, \citet{shejwalkar2022recycling} has proposed a mechanism to quantify the uncertainty that DP noise adds to the outputs of ML algorithms (without  any additional privacy cost).
+% \looseness=-1
+\paragraph{Uncertainty for DP Models.} An initial connection between differential privacy and uncertainty quantification is explored in \citet{williams2010probabilistic}, which shows that probabilistic inference can improve accuracy and measure uncertainty on top of differentially private models. By relying on intermediate model predictions, \citet{shejwalkar2022recycling} has proposed a mechanism to quantify the uncertainty that DP noise adds to the outputs of ML algorithms (with no additional privacy cost).
 
 %The augmented model consists of a representation function $r: \mathcal{X} \rightarrow \mathbb{R}^L$ mapping inputs to latent codes and three additional functions: (i) the \emph{prediction} function $f: \mathbb{R}^L \rightarrow \mathbb{R}^C$ for the classification task targeted at~$c_\text{target}$; (ii) the \emph{selection} function $g: \mathbb{R}^L \rightarrow [0,1]$ representing a continuous approximation of the accept/reject decision for $\bm{x}$; and (iii) an additional \emph{auxiliary} function $h: \mathbb{R}^L \rightarrow \mathbb{R}^C$ trained for the unconstrained classification tasks.
 
@@ -230,7 +230,7 @@ For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies 
 % \begin{wrapfigure}{R}{0.5\textwidth}
 %     \vspace{-12pt}
 %     \begin{minipage}{0.5\textwidth}
-\begin{algorithm}[H]
+\begin{algorithm}[t]
 	\caption{\sctd~\citep{rabanser2022selective}}\label{alg:sctd}
 	\begin{algorithmic}[1]
 	\Require Checkpointed model sequence $\{f_1,\ldots,f_T\}$, query point $\bm{x}$, weighting parameter $k \in [0,\infty)$.
@@ -264,11 +264,11 @@ In light of this challenge, we expect one recent method in particular to perform
 
 We can extend the previous analysis based on post-processing and composition to other SC techniques. This allows us to group selective classification techniques into three classes: (i) directly optimized; (ii) post-processing; and (iii) advanced sequential composition. For directly optimized and post-processing approaches, we can obtain selective classification for free. On the other hand, composition-based approaches either require an increased privacy budget or suffer from decreased utility.
 
-\paragraph{Direct optimization.} Many selective classification approaches directly modify the loss function and optimization is performed w.r.t. this adapted loss function. As DP-SGD is loss function and architecture agnostic $(\varepsilon, \delta)$ guarantees hold automatically for SC methods that only change the loss function. \emph{Applicable to:} Softmax Response (\sr), Deep Gamblers~(\dg), Self-Adaptive Training (\sat).
+\paragraph{Direct Optimization.} Many selective classification approaches directly modify the loss function and optimization is performed w.r.t. this adapted loss function. As DP-SGD is loss function and architecture agnostic, $(\varepsilon, \delta)$ guarantees hold automatically for SC methods that only change the loss function. \emph{This property applies to:} Softmax Response (\sr), Deep Gamblers~(\dg), Self-Adaptive Training (\sat).
 
-\paragraph{Post-processing.} If a function $\phi(x)$ satisfies $(\varepsilon,\delta)$-DP, then for any deterministic or random function $\psi(\cdot)$, the application of $\psi$ on $\phi$, formally $\psi \circ \phi (x)$, still satisfies $(\varepsilon,\delta)$-DP \citep{dwork2006calibrating}. \emph{Applicable to:} Monte-Carlo Dropout (\mcdo), Selective Classification Training Dynamics (\sctd).
+\paragraph{Post-Processing.} If a function $\phi(x)$ satisfies $(\varepsilon,\delta)$-DP, then for any deterministic or random function $\psi(\cdot)$, the application of $\psi$ on $\phi$, formally $\psi \circ \phi (x)$, still satisfies $(\varepsilon,\delta)$-DP \citep{dwork2006calibrating}. \emph{This property applies to:} Monte-Carlo Dropout (\mcdo), Selective Classification via Neural Network Training Dynamics (\sctd).
 
-\paragraph{Advanced sequential composition.} If in a set of aggregated functions $\{\phi_1(x), \ldots, \phi_M(x)\}$ each $\phi_i(x)$ satisfies $(\varepsilon,\delta)$-DP, then releasing the set of all outputs $\psi(x) = (\phi_1(x), \ldots, \phi_M(x))$ satisfies $\approx (\sqrt{M}\varepsilon,M\delta)$-DP \citep{dwork2006calibrating}. To maintain $(\varepsilon, \delta)$-DP over the aggregated output, each function needs to satisfy $\approx(\frac{\varepsilon}{\sqrt M}, \frac{\delta}{M})$-DP. \emph{Applicable to}: Deep Ensembles (\de), SelectiveNet (\sn).
+\paragraph{Advanced Sequential Composition.} If in a set of aggregated functions $\{\phi_1(x), \ldots, \phi_M(x)\}$ each $\phi_i(x)$ satisfies $(\varepsilon,\delta)$-DP, then releasing the set of all outputs $\psi(x) = (\phi_1(x), \ldots, \phi_M(x))$ satisfies $\approx (\sqrt{M}\varepsilon,M\delta)$-DP \citep{dwork2006calibrating}. To maintain $(\varepsilon, \delta)$-DP over the aggregated output, each function needs to satisfy $\approx(\frac{\varepsilon}{\sqrt M}, \frac{\delta}{M})$-DP. \emph{Applicable to}: Deep Ensembles (\de), SelectiveNet (\sn).
 
 % \begin{itemize}
 %     \item \textbf{Post-processing}: Softmax Response (\sr), Monte-Carlo Dropout (\mcdo), Deep Gamblers~(\dg), Self-Adaptive Training (\sat), Selective Classification Training Dynamics (\sctd).
@@ -399,6 +399,7 @@ After having examined how current selective classification techniques influence 
 
 To showcase this, we present a synthetic logistic regression example with the softmax response SC mechanism. We generate data from a mixture of two two-dimensional Gaussians with heavy class-imbalance. Concretely, we generate samples for a majority class $\{(\bm{x}_i,1)\}_{i=1}^{1000}$ with each $\bm{x}_i \sim \mathcal{N}(\bm{0}, \bm{I})$ and a single outlier point form a minority class $(\bm{x}^*,-1)$ with $\bm{x}^* \sim \mathcal{N}(\begin{bmatrix}10 & 0\end{bmatrix}^\top, \bm{I})$. We then train multiple differentially private mechanisms with $\varepsilon \in \{\infty, 7,3,1\}$  on this dataset and evaluate all models on a test set produced using the same data-generating process. %We refer to the test-time outlier as $(\bm{x}^*,-1)$.
 
+\looseness=-1
 We show the outcome of this set of experiments in Figure~\ref{fig:eps_gauss} where we plot the test set and the decision boundary of each model across $\varepsilon$ levels. For $\varepsilon = \infty$, the model 
 %accounts for the ground-truth label for the outlier $(\bm{x}^*,-1)$ and 
 successfully discriminates the majority and the minority class. However, the decision boundary is heavily influenced by a single data point, namely the outlier $(\bm{x}^*,-1)$. 
@@ -426,10 +427,8 @@ Note that, even though all models with $\varepsilon \in \{7,3,1\}$ misclassify t
 \label{sec:new_metric}
 
 \begin{contriback}
-This subsection was written with Anvith Thudi.
+This subsection was written with Anvith Thudi. Both Stephan and Anvith contributed to the formalization of the upper bound and the resulting evaluation score in equal parts.
 \end{contriback}
-
-
 
 % \anvith{@stephan I think the transition/intro of this section is off? It's focusing on accuracy aligning being the key issue, where as the takeaway of the previous section is the possibility of accuracy not being the only effect of DP against SC. I would say that first, then have the question of "how do we disentangle the effect from accuracy to the overall effect on SC". You then can mention one way is to only ever consider models with the same accuracy, but it is known stronger privacy gives worse models and having to lower the accuracy of less private models may have unintended consequences (as described later in the accuracy-alignment results, and can describe the example of early stopping). Hence we propose a metric that is independent of accuracy which measures how close a method is to optimal for that given accuracy.} 
 
@@ -604,9 +603,9 @@ Measuring the area enclosed between the bound $\overline{\text{acc}}(a_\text{ful
     \end{equation}
     }
 \end{definition}
-We provide additional intuition for both the proposed upper bound and our score as part of Figure~\ref{fig:bound_score}.
+We provide additional intuition as part of Figure~\ref{fig:bound_score}.
 
-\paragraph{Bound justification.} To understand the upper bound given in Equation~\ref{eq:bound}, 
+\paragraph{Bound Justification.} To understand the upper bound given in Equation~\ref{eq:bound}, 
 %assume the existence of a trained classification model with 
 note that a full-coverage accuracy level of $a_\text{full}$ means that a fraction $a_\text{full}$ of points are correctly classified. %and $1-a_\text{full}$ of points are incorrectly classified. 
 An ideal selective classification method for this model would, by increasing the coverage $c$ from 0 to 1, first accept all points that the model classifies correctly: this gives the optimal selective classification accuracy for coverage $c \leq a_{\text{full}}$ of $100\%$. 
@@ -757,7 +756,7 @@ hyper-parameters in Appendix~\ref{sec:hyp}.
 \end{table}
 
 
-\paragraph{Evaluation of selective classification techniques across privacy levels.}
+\paragraph{Evaluation of Selective Classification Techniques Across Privacy Levels.}
 
 We report our main results in Figure~\ref{fig:accuracy_coverage_tradeoff} where we display the accuracy-coverage trade-off for our full experimental panel. Overall, we observe that Selective Classification Training Dynamics (\sctd) delivers the best accuracy-coverage trade-offs. While this is consistent with non-private~\citep{rabanser2022selective}, we find that \sctd delivers especially strong performance at lower $\varepsilon$ levels. This suggests that leveraging training dynamics information is useful for performative selective classification under DP. As expected, based off of the discussion in Section~\ref{sec:sc_affects_dp}, Figure~\ref{fig:accuracy_coverage_tradeoff} also shows that the performance of both Deep Ensembles (\de) and SelectiveNet (\sn) suffers under DP, showing increasing utility degradation as $\varepsilon$ decreases. %In particular, for GTSRB trained using $(1,\delta)$-DP, both models never exceed random guessing accuracy.
 
@@ -837,24 +836,24 @@ We report our main results in Figure~\ref{fig:accuracy_coverage_tradeoff} where 
 \label{fig:acc_cov_bound}
 \end{figure*}
 
-\paragraph{Recovering non-private utility by reducing coverage.}
+\paragraph{Recovering Non-Private Utility by Reducing Coverage.}
 
 Recall that one key motivation for applying selective classification to a DP model is to recover non-private model utility at the expense of coverage. We investigate this coverage cost in detail by examining how many samples a DP model can produce decisions for while maintaining the utility level of the respective non-private model (\ie a model trained on the same dataset without DP). The results are outlined in Table~\ref{tab:coverage_performance}. For high (\ie $\varepsilon=7$) and moderate (\ie $\varepsilon=3$) privacy budgets, we observe that a reduction of $20\%-30\%$ in data coverage recovers non-private utility. However, at low (\ie $\varepsilon=1$) privacy budget we observe that dataset coverage degrades strongly on most datasets. In particular, we find that for CIFAR-10 (across all $\varepsilon$ values) and GTSRB (at $\varepsilon=1$), the coverage reduces to below $30\%$. This result showcases that, depending on the particular choice of $\varepsilon$, recovering non-private model performance from a DP model can come at a considerable coverage cost. Moreover, this coverage cost varies widely across SC methods with \sctd leading to the lowest incurred loss in coverage by far.
 
-\paragraph{Disentangling selective prediction performance from base accuracy.}
+\paragraph{Disentangling Selective Prediction Performance From Base Accuracy.}
 
 Recall from Section~\ref{sec:new_metric} that the standard evaluation pipeline for selective classification is not suitable for comparing DP models across varying privacy guarantees. To overcome this issue, we compute the accuracy-dependent upper bound (Equation~\ref{eq:sc_dp_bound}) for each experiment and measure how closely the achieved accuracy/coverage trade-off aligns with this bound as per Equation~\ref{eq:acc_norm_score}. We document these results computed over all datasets, SC methods, and $\varepsilon$ levels in Table~\ref{tab:sc_score_performance}. We find that, as $\varepsilon$ decreases, all methods perform progressively worse. That is, for stronger privacy, all methods increasingly struggle to identify points they predict correctly on. Recall that this behavior is expected based on our discussion in Section~\ref{sec:dp_affects_sc}. Again, we observe \sctd offering the strongest results, leading to the smallest bound deviation. To graphically showcase closeness to the upper bound, we further plot the accuracy-coverage trade-off and the corresponding upper bound for each experiment with the \sctd method in Figure~\ref{fig:acc_cov_bound}. 
 
-\begin{figure*}[t]
+\begin{figure*}[b]
   \centering
   \includegraphics[width=\linewidth]{figs/sptd_dp/cov_acc_de_bound}
 \caption[Sequential composition (\de) vs parallel composition (\texttt{DE-PART}) for deep ensembles.]{\textbf{Sequential composition (\de) vs parallel composition (\texttt{DE-PART}) for deep ensembles.} We observe that \texttt{DE-PART} (orange) under-performs \de (blue) for selective classification across all $\varepsilon$.}
 \label{fig:acc_cov_bound_de}
 \end{figure*}
 
-\paragraph{Parallel composition with partitioned ensembles.}
+\paragraph{Parallel Composition With Partitioned Ensembles.}
 
-As previously stated, Deep Ensembles under-perform under DP due to composition. One potential mitigation strategy is to partition the data and train isolated models with no data overlap. This circumvents composition but also limits the utility of individual ensemble members as less data is available for training. We experiment with both setups and report results in Figure~\ref{fig:acc_cov_bound_de}. Overall, these experimental results indicate that (i) partitioned deep ensembles lead to lower full-coverage accuracy when compared to non-partitioned deep ensembles while (ii) at the same time being less performant in terms of selective classification performance.
+As previously stated, Deep Ensembles under-perform under DP due to the sequential composition property. One potential mitigation strategy is to partition the data and train isolated models with no data overlap. This circumvents composition but also limits the utility of individual ensemble members as less data is available for training. We experiment with both setups and report results in Figure~\ref{fig:acc_cov_bound_de}. Overall, these experimental results indicate that (i) partitioned deep ensembles lead to lower full-coverage accuracy when compared to non-partitioned deep ensembles while (ii) at the same time being less performant in terms of selective classification performance.
 
 %, stronger degrees of privacy lead to worse SC performance as measured by the accuracy-dependent bound-closeness score. %Hence, we conclude that differentially private models do not know what they do not know.
 
@@ -900,9 +899,9 @@ In this work we have studied methods for performing selective classification und
 
 \paragraph{Limitations.} This work presents insights drawn from empirical results and we acknowledge that a more thorough theoretical analysis is needed for a deeper understanding of the interplay between SC and DP. Also, we did not carefully investigate fairness implications beyond class imbalance. This connection to fairness requires special attention with past works showing that both DP and SC can negatively affect sensitive subgroups~\citep{jones2020selective, bagdasaryan2019differential}.
 
-\paragraph{Future work.} We believe that this work initiates a fruitful line of research. 
+\paragraph{Future Work.} We believe that this work initiates a fruitful line of research. 
 %towards improving differentially private ML models, by endowing them with the ability to abstain instead of being forced to make an incorrect prediction when it is infeasible to do so under DP. 
-In particular, future work can expand on the intuition provided here to obtain fundamental bounds on selective classification performance in a DP setting. Although we did not focus on this here, we believe that the ideas developed in this chapter could help mitigate the trade-offs between privacy and subgroup fairness.
+In particular, future work can expand on the intuition provided here to obtain fundamental bounds on selective classification performance in a DP setting. Although we did not focus on this here, we believe that the ideas developed in this chapter could help mitigate the trade-offs between privacy and fairness.
 %By abstaining from making confident predictions on underrepresented subgroups where differential privacy makes learning hard, we endow DP ML models to provide better transparency to individuals in underrepresented groups.
 
 %We have studied methods for performing selective classification under a differential privacy constraint. We have also highlighted the fundamental difficulty of performing selective prediction under differential privacy, both via a theoretical example and empirical studies in Section 4.2. While the problem is indeed challenging, our study finds that a specific method (SCTD) achieves the best tradeoffs between selective prediction performance and privacy budget $(\epsilon, \delta)$, owing largely to the fact that it only using information from a single training run and does not require training multiple models or heads. We believe that this work initiates a fruitful line of research towards improving differentially private ML models, by endowing them with the ability to say "I don't know" instead of being forced to make an incorrect prediction when it is infeasible to do so under a privacy constraint. Further research can expand on the intuition provided here to obtain fundamental bounds on selective classification performance in a differential private setting. Although we did not focus on this here, we believe that the ideas developed in this paper are a promising route to mitigating the tradeoffs between privacy and subgroup fairness. By abstaining from making confident predictions on underrepresented subgroups where differential privacy makes learning hard, we endow DP ML models to provide better transperancy to individuals in underrepresented groups. 

@@ -29,7 +29,7 @@ The unifying principle behind these methods is to modify the training stage in o
 %\todo{talk a bit more about the security implications of this} \anvith{can talk about ML for security and the need for low FPR (@Nicolas maybe has specific examples, I just remember this coming up for PoL)}
 
 We instead show that \textit{ these modifications are unnecessary}. That is, our method, which \textbf{establishes new SOTA results for selective prediction} across a variety of datasets, %\david{might help to state the method name earlier so you don't keep repeating "our method" but not too important} 
-not only outperforms existing work but \textbf{our method can be easily applied on top of all existing models}, unlike past methods. Moreover, our method is not restricted to classification problems but can be applied for real-valued prediction problems, too, like regression and time series prediction tasks. This is an important contribution as recent SP approaches have solely focused on improving selective \emph{classification}.
+not only outperforms existing work but \textbf{our method can be easily applied on top of all existing models}, unlike past methods. Moreover, our method is not restricted to classification problems but can be applied for real-valued prediction problems, too, like regression and time series prediction tasks. This is an important contribution as a majority of recent selective prediction approaches have solely focused on improving selective \emph{classification}.
 
 %Our approach builds on the following observation: when we sequentially optimize a model for one dataset there is in fact a larger set of datapoints the model also iteratively optimized \citep{hardt2016train, bassily2020stability, thudi2022necessity}. Our key hypothesis is that this larger set of points we optimized significantly overlaps with the points we predict correctly on. That is, we hypothesize that "optimized = correct (often)", and hence a method to detect if we sequentially optimized a datapoint would also be a performative selective classification method: we accept a datapoint if and only if it was "optimized". However, the question now becomes how to characterize what it means to optimize a datapoint. To that end, we aim to understand the innate properties of common iterative optimization processes, which can be studied by examining the \emph{training dynamics} of neural networks. 
 
@@ -96,7 +96,7 @@ To summarize, our main contributions are as follows:
 
 
 \section{Background on Selective Prediction}
-\label{sec:background}
+\label{sec:background_sptd}
 
 \paragraph{Supervised Learning Setup.} Our work considers the standard supervised learning setup. We assume access to a dataset $D = \{(\bm{x}_i,y_i)\}_{i=1}^{M}$ consisting of $M$ data points $(\bm{x},y)$ with $\bm{x} \in \mathcal{X}$ and  $y \in \mathcal{Y}$. We refer to $\mathcal{X} := \mathbb{R}^d$ as the covariate space (or input/data space) of dimensionality $d$. For classification problems, we define $\mathcal{Y} := [C] = \{1, 2, \ldots, C\}$ as the label space consisting of $C$ classes. For regression and time series problems (such as demand forecasting) we instead define $\mathcal{Y} := \mathbb{R}$ and $\mathcal{Y} := \mathbb{R}^R$ respectively (with $R$ being the prediction horizon). All data points $(\bm{x},y)$ are sampled independently from the underlying distribution $p$ defined over the joint covariate and label spaces $\mathcal{X} \times \mathcal{Y}$. Our goal is to learn a prediction function $f : \mathcal{X} \rightarrow \mathcal{Y}$ which minimizes the risk $\mathcal{R}(f_{\bm{\theta}})$ with respect to the underlying data distribution $p$ and an appropriately chosen loss function $\ell : \mathcal{Y} \times \mathcal{Y} \rightarrow \mathbb{R}$. 
 We can derive the optimal parameters $\hat{\bm{\theta}}$ via empirical risk minimization which approximates the true risk $\mathcal{R}(f_{\bm{\theta}})$ through sampling, thereby ensuring that $\bm{\theta}^* \approx \hat{\bm{\theta}}$ for a sufficiently large amount of samples:
@@ -115,7 +115,7 @@ Given an acceptance threshold $\tau$, the resulting predictive model can be summ
 \end{cases}
 \end{equation}
 
-\paragraph{Selective Prediction Evaluation Metrics.} Prior work evaluates the performance of a selective predictor $(f,g)$ based on two metrics: the \emph{coverage} of $(f,g)$ (\ie what fraction of points we predict on) and the \emph{selective utility} of $(f,g)$ on the accepted points. Note that the exact utility metric depends on the type of the underlying selective prediction task (e.g. accuracy for classification, $R^2$ for regression, and a quantile-based loss for time series forecasting). Successful SP methods aim to obtain both strong selective utility and high coverage. Note that these two metrics are at odds with each other: na\"ively improving utility leads to lower coverage and vice-versa. The complete performance profile of a model can be specified using the risk–coverage curve, which defines the risk as a function of coverage~\citep{yaniv2010riskcoveragecurve}. These metrics can be formally defined as follows: 
+\paragraph{Selective Prediction Evaluation Metrics.} Prior work evaluates the performance of a selective predictor $(f,g)$ based on two metrics: the \emph{coverage} of $(f,g)$ (\ie what fraction of points we predict on) and the \emph{selective utility} of $(f,g)$ on the accepted points. Note that the exact utility metric depends on the type of the underlying selective prediction task (e.g. accuracy for classification, $R^2$ for regression, and a quantile-based loss for time series forecasting). Successful SP methods aim to obtain both strong selective utility and high coverage. Note that these two metrics are at odds with each other: na\"ively improving utility leads to lower coverage and vice-versa. The complete performance profile of a model can be specified using the risk–coverage curve, which defines the risk as a function of coverage~\citep{yaniv2010riskcoveragecurve}. These metrics can be formally defined as: 
 \begin{align}
     \text{coverage}(f,g) & = \frac{M_\tau}{M} \\
     \text{utility}(f,g) & = \sum_{ \{(\bm{x}, y) : g(\bm{x}) \leq \tau \} } u(f(\bm{x}), y)
@@ -150,17 +150,17 @@ Here, $u(\cdot, \cdot)$ corresponds to the specifically used utility function, $
 
 % \anvith{I think this whole discussion uses classifiers? Nothing on real valued outputs?}
 
-\paragraph{Softmax Response Baseline (classification).} The first work on selective classification was the softmax response (\sr) mechanism~\citep{hendrycks2016baseline, geifman2017selective}. A classification model typically has a softmax output layer which takes in unnormalized activations in $z_{i} \in \mathbb{R}^C$ (referred to as logits) from a linear model or a deep neural net. These activations are mapped through the softmax function which normalizes all entries 
+\paragraph{Softmax Response Baseline (Classification).} The first work on selective classification was the softmax response (\sr) mechanism~\citep{hendrycks2016baseline, geifman2017selective}. A classification model typically has a softmax output layer which takes in unnormalized activations in $z_{i} \in \mathbb{R}^C$ (referred to as logits) from a linear model or a deep neural net. These activations are mapped through the softmax function which normalizes all entries 
 \begin{equation}
     \sigma(\bm{z})_{i}=\frac{e^{z_{i}}}{\sum_{j=1}^{K} e^{z_{j}}}
 \end{equation}
 to the interval $[0,1]$ and further ensures that $\sum_{i=1}^{C} \sigma(\bm{z})_{i} = 1$. As a result, the softmax output can be interpreted as a conditional probability distribution which we denote $f(y|\bm{x})$.
 The softmax response mechanism applies a threshold $\tau$ to the maximum response of the softmax layer: $\max_{y \in \mathcal{Y}}f(y|\bm{x})$. 
 Given a confidence parameter $\delta$ and desired risk $\hat{\mathcal{R}}(f)$, \sr constructs $(f, g)$ with test error no larger than $\hat{\mathcal{R}}(f)$ with probability $\geq 1-\delta$. 
-While this approach is simple to implement, it has been shown to produce over-confident results due to poor calibration of deep neural networks~\citep{guo2017calibration}.\footnote{Under miscalibration, a model's prediction frequency of events does not match the true observed frequency of events.} 
+While this approach is simple to implement, it has been shown to produce over-confident results due to poor calibration of deep neural networks~\citep{guo2017calibration}.\footnote{Under miscalibration, a model's prediction frequency of events does not match the true frequency of events.} 
 %As illustrated in Section~\ref{sec:method_intuition}, our proposed method remedies this problem in the presence of training instability/data ambiguity.
 
-\paragraph{Loss Modifications (mostly classification).} 
+\paragraph{Loss Modifications (Mostly Classification).} 
 The first work to deliberately address selective classification via architecture modification was SelectiveNet~\citep{geifman2019selectivenet}, which trains a model to jointly optimize for classification and rejection. A loss penalty is added to enforce a particular coverage constraint using a variant of the interior point method~\cite{potra2000interior} which is often used for solving linear and non-linear convex optimization problems. To optimize selective accuracy over the full coverage spectrum in a single training run, Deep Gamblers~\citep{liu2019deep} transform the original $C$-class problem into a $(C + 1)$-class problem where the additional class represents model abstention. \shortened{A similar approach is given by Self-Adaptive Training (\sat)~\citep{huang2020self} which also uses a $(C+1)$-class setup but instead incorporates an exponential average of intermediate predictions into the loss function.} 
 %Our method removes the need for these explicit training time modifications. 
 % Recently, \citet{feng2023towards} showed that entropy regularization and the usage of the softmax response mechanism on top of a model with higher utility (\eg as yielded by \sat) leads to additional performance gains. 
@@ -171,7 +171,7 @@ Other similar approaches include: performing statistical inference for the margi
 
 % \stephan{Add sentence that UQ works for both regression and classifcation}
 
-\paragraph{Uncertainty Quantification (classification + regression).} 
+\paragraph{Uncertainty Quantification (Classification + Regression).} 
 It was further shown by~\citep{balaji2017uncertainty, zaoui2020regression} that deep model ensembles (\ie a collection of multiple models trained with different hyper-parameters until convergence) can provide state-of-the-art uncertainty quantification, a task closely related to selective prediction. This however raises the need to train multiple models from scratch. %\anvith{"we show, in the simplest setting of our method, we can match the performance of deep ensembles using the same inference time cost but only $1/10$th the training time costs."} \stephan{I think this is too specific as 10 is a hyperparaneter. I added a comment re cost to the intro aleardy. people often skip the background so it should be in the intro if we want to emphaszie it} %\anvith{"Othe work has looked"} 
 \shortened{To reduce the cost of training multiple models, \citep{gal2016dropout} proposed abstention based on the variance statistics from several dropout \cite{srivastava2014dropout} enabled forward passes at test time.} %\anvith{"However, such past methods to reduce training costs degrade performance, while our method (in its simplest setting with only one training run) does not degrade performance."} \stephan{why would this degrade performance?}
 % \anvith{I think you can drop the following sentence based on suggestions above. The suggestions above should it make more direct what our improvements/contribution are. Right now it seems very passive} \stephan{commented out previous point so keeping what we have}
@@ -179,7 +179,7 @@ It was further shown by~\citep{balaji2017uncertainty, zaoui2020regression} that 
 Another popular technique for uncertainty quantification, especially for regression and time series forecasting, is given by directly modeling the output distribution~\citep{alexandrov2019gluonts} in a parametric fashion. Training with a parametric output distribution however can lead to additional training instability, often requiring extensive hyper-parameter tuning and distributional assumptions. On the other hand, our approach does not require any architecture or other training-time modifications. \newlyadded{Finally, we note that selective prediction and uncertainty are also strongly related to the field of automated model evaluation which relies on the construction a proximal prediction pipeline of the testing performance without the presence of ground-truth labels~\citep{peng2023came,peng2024energy}.}
 
 
-\paragraph{Training Dynamics Approaches (classification).} Checkpoint and snapshot ensembles \citep{huang2017snapshot, chen2017checkpoint} constitute the first usage of training dynamics to boost model utility. Our work is closest in spirit to recent work on dataset cartography~\citep{swayamdipta2020dataset} which relies on using training dynamics from an example difficulty viewpoint by considering the variance of logits. However, their approach does not consider selective prediction and further requires access to true label information (which is not available in the selective prediction setting). Recent work on out-of-distribution detection~\citep{adila2022understanding}, a closely related yet distinct application scenario from selective prediction, harness similar training dynamics based signals.
+\paragraph{Training Dynamics Approaches (Classification).} Checkpoint and snapshot ensembles \citep{huang2017snapshot, chen2017checkpoint} constitute the first usage of training dynamics to boost model utility. Our work is closest in spirit to recent work on dataset cartography~\citep{swayamdipta2020dataset} which relies on using training dynamics from an example difficulty viewpoint by considering the variance of logits. However, their approach does not consider selective prediction and further requires access to true label information (which is not available in the selective prediction setting). Recent work on out-of-distribution detection~\citep{adila2022understanding}, a closely related yet distinct application scenario from selective prediction, harness similar training dynamics based signals.
 
 
 \paragraph{Example Difficulty.}
@@ -192,7 +192,7 @@ Closest to our method, the work of \cite{agarwal2020estimating} utilizes gradien
 Notably, this approach is more costly and less practical than our approach and also does not study the utility/coverage trade-off which is of paramount importance to selective prediction.
 
 \newlyadded{
-\paragraph{Disagreement} Our \sptd method heavily relies on the presence of disagreements between intermediate models. Past work on (dis-)agreement has studied the connection between generalization and disagreement of full SGD runs \citep{jiang2021assessing} as well as correlations between in-distribution and out-of-distribution agreement across models \citep{baek2022agreement}.
+\paragraph{Disagreement.} Our \sptd method heavily relies on the presence of disagreements between intermediate models. Past work on (dis-)agreement has studied the connection between generalization and disagreement of full SGD runs \citep{jiang2021assessing} as well as correlations between in-distribution and out-of-distribution agreement across models \citep{baek2022agreement}.
 }
 
 %\stephan{Some works for regression and TS (mostly ensembles and direct parametric output)}
@@ -219,12 +219,13 @@ We now introduce our selective prediction algorithms based on neural network tra
 \end{figure*}
 
 
-Stochastic iterative optimization procedures, such as Stochastic Gradient Descent (SGD), yield a sequence of models that is iteratively derived by minimizing a loss function $\ell(\cdot,\cdot)$ on a randomly selected mini-batch $(\bm{X}_i, \bm{y}_i)$ from the training set. The iterative update rule can be expressed as follows % . Traditional 
+Stochastic iterative optimization procedures, such as Stochastic Gradient Descent (SGD), yield a sequence of models that is iteratively derived by minimizing a loss function $\ell(\cdot,\cdot)$ on a randomly selected mini-batch $(\bm{X}_i, \bm{y}_i)$ from the training set. The iterative update rule can be expressed as % . Traditional 
 \begin{equation}
-    \bm{\theta}_{t+1} = \bm{\theta}_{t} - \nu \frac{\partial \ell(f(\bm{X}_i), \bm{y}_i)}{\partial \bm{\theta}_{t}}
+    \bm{\theta}_{t+1} = \bm{\theta}_{t} - \nu \frac{\partial \ell(f(\bm{X}_i), \bm{y}_i)}{\partial \bm{\theta}_{t}},
 \end{equation}
 where the learning rate $\nu$ controls the speed of optimization and $t \in \{1,\ldots,T\}$ represents a particular time-step during the optimization process.
 
+\looseness=-1
 Current methods for selective prediction disregard the properties of this iterative process and only rely on the final set of parameters $\bm{\theta}_{T}$.  
 % This is particularly true for the softmax response (\sr) baseline~\citep{hendrycks2016baseline,geifman2017selective} which is known to produce overconfident predictions~\citep{guo2017calibration}.
 However, the optimization trajectories 
@@ -363,7 +364,7 @@ The resulting algorithm using this definition of $a_t$ for regression is given i
 \label{sec:forging}
 
 \begin{contriback}
-This subsection was written with Anvith Thudi.
+This subsection was written with Anvith Thudi. Both Stephan and Anvith jointly developed the max score and the sum score. Anvith provided details on the connection to forging as well as the formalism of Lemma~\ref{lem:prob_accept}.
 \end{contriback}
 
 While our \sptd method is primarily motivated from the example difficulty view point, we remark that the scores \sptd computes to decide which points to reject can be derived from multiple different perspectives. To showcase this, we provide a formal treatment on the connection between selective classification and forging~\citep{thudi2022necessity}, which ultimately leads to the same selection function $g(\cdot)$ as above.
@@ -393,6 +394,7 @@ By Chebyshev's inequality we have the probability of a particular sequence $\{a_
 
 We do not guarantee Lemma~\ref{lem:prob_accept} is tight. Though we do take a minimum to make it tighter, this is a minimum over inequalities all derived from Chebyshev's inequality\footnote{One could potentially use information about the distribution of points not in $D$ to refine this bound.}. Despite this potential looseness, using the bound from Lemma~\ref{lem:prob_accept}, we can design a na\"ive selective classification protocol based on the "optimized = correct (often)" hypothesis and use the above bound on being a plausible training datapoint as our characterization of optimization; for a test input $\bm{x}$, if the upper-bound on the probability of being a datapoint in $D$ is lower than some threshold $\tau$ reject, else accept. However, the following question prevents us from readily using this method: \emph{How do $\mathbb{E}[p_{t}]$ and $\mathbb{V}[p_{t}]$ evolve during training?}
 
+\looseness=-1
 To answer this question, we propose to examine how the predictions on plausible training points evolve during training. Informally, the evolution of $\mathbb{E}[p_{t}]$ represents knowing how often we predict the final label at step $t$, while the evolution of $\mathbb{V}[p_{t}]$ represents knowing how we become more consistent as we continue training. Do note that the performance of this optimization-based approach to selective classification will depend on how unoptimized incorrect test points are. In particular, our hypothesis is that incorrect points often appear sufficiently un-optimized, yielding distinguishable patterns for $\mathbb{E}[p_{t}]$ and $\mathbb{V}[p_{t}]$ when compared to optimized points. We verify this behavior in Section~\ref{sec:emp_eval} where we discuss the distinctive label evolution patterns of explicitly optimized, correct, and incorrect datapoints.
 
 %The rest of this subsection will focus on the two methods we propose to characterize this optimization behaviour, giving rise to our selective classification methods. Although we do not give formal correctness guarantees for our methods for selective classification, %or being a (with high probability) necessary condition to be a datapoint we explicitly optimized for, 
@@ -504,13 +506,14 @@ We present a comprehensive empirical study demonstrating the effectiveness of \s
     \item Present exemplary training-dynamics-derived label evolution curves for individual examples from all datasets.
     \item Examine our method's sensitivity to the checkpoint selection strategy and the weighting parameter~$k$.
     \item Evaluate the detection performance of out-of-distribution and adversarial examples, showing that \sptd can be applied beyond the i.i.d. assumption of selective prediction.
-    \item Provide a detailed cost vs performance tradeoff of \sptd and competing selective prediction methods.
+    \item Provide a detailed cost vs performance tradeoff of \sptd and competing SP methods.
     \item Analyze distributional training dynamics patterns of both correct and incorrect data points, the separation of which enables performative selective classification.
 \end{itemize} 
 
-\paragraph{Datasets \& Training.} We evaluate \sptd on image dataset benchmarks that are common in the selective classification literature: CIFAR-10/CIFAR-100~\citep{krizhevsky2009learning}, StanfordCars~\citep{krause20133d}, and Food101~\citep{bossard14}. For each dataset, we train a deep neural network following the ResNet-18 architecture~\citep{he2016deep} and checkpoint each model after processing $50$ mini-batches of size $128$. All models are trained over $200$ epochs ($400$ epochs for StanfordCars) using the SGD optimizer with an initial learning rate of $10^{-2}$, momentum $0.9$, and weight decay $10^{-4}$. Across all datasets, we decay the learning rate by a factor of $0.5$ in $25$-epoch intervals.
+% \looseness=-1
+\paragraph{Datasets \& Training.} We evaluate \sptd on vision benchmarks that are common in the selective classification literature: CIFAR-10/CIFAR-100~\citep{krizhevsky2009learning}, StanfordCars~\citep{krause20133d}, and Food101~\citep{bossard14}. For each dataset, we train a deep neural network following the ResNet-18 architecture~\citep{he2016deep} and checkpoint each model after processing $50$ mini-batches of size $128$. All models are trained over $200$ epochs ($400$ epochs for StanfordCars) using the SGD optimizer with an initial learning rate of $10^{-2}$, momentum $0.9$, and weight decay $10^{-4}$. Across all datasets, we decay the learning rate by a factor of $0.5$ in $25$-epoch intervals.
 
-\paragraph{Baselines.} We compare our method (\sptd) to common SC techniques previously introduced in Section~\ref{sec:background}: Softmax Response (\sr) and Self-Adaptive Training (\sat). Based on recent insights from~\cite{feng2023towards}, we (i) train \sat with additional entropy regularization\footnote{This entropy regularization step is designed to encourage the model to be more confident in its predictions.}; and (ii) derive \sat's score by applying Softmax Response (\sr) to the underlying classifier (instead of thresholding the abstention class). We refer to this method as \satersr. We do not include results for SelectiveNet, Deep Gamblers, or Monte-Carlo Dropout as previous works~\citep{huang2020self,feng2023towards} have shown that \fixed{\satersr} strictly dominates these methods. In contrast to recent SC works, we do however include results \fixed{with} Deep Ensembles (\de)~\citep{balaji2017uncertainty}, a relevant baseline from the uncertainty quantification literature. Our hyper-parameter tuning procedure is documented in Appendix~\ref{app:baseline_hyperparams}.
+\paragraph{Baselines.} We compare our method (\sptd) to common SC techniques previously introduced in Section~\ref{sec:background_sptd}: Softmax Response (\sr) and Self-Adaptive Training (\sat). Based on recent insights from~\cite{feng2023towards}, we (i) train \sat with additional entropy regularization\footnote{This entropy regularization step is designed to encourage the model to be more confident in its predictions.}; and (ii) derive \sat's score by applying Softmax Response (\sr) to the underlying classifier (instead of thresholding the abstention class). We refer to this method as \satersr. We do not include results for SelectiveNet, Deep Gamblers, or Monte-Carlo Dropout as previous works~\citep{huang2020self,feng2023towards} have shown that \fixed{\satersr} strictly dominates these methods. In contrast to recent SC works, we do however include results \fixed{with} Deep Ensembles (\de)~\citep{balaji2017uncertainty}, a relevant baseline from the uncertainty quantification literature. Our hyper-parameter tuning procedure is documented in Appendix~\ref{app:baseline_hyperparams}.
 
 % \subsubsection{Results}
 % \label{sec:results}
@@ -521,7 +524,7 @@ We present a comprehensive empirical study demonstrating the effectiveness of \s
 %with an emphasis on low-coverage (\ie desired high utility). 
 We see that \sptd outperforms both \sat and \sr and performs similarly as \de. To further boost performance across the accuracy/coverage spectrum, we combine \sptd and \de by applying \sptd on each ensemble member from \de and then average their scores. More concretely, we estimate $\sptdde = \frac{1}{m}\sum_{m=1}^M \sptd_m$ where $\sptd_m$ computes $g$ on each ensemble member $m\in[M]$. This combination leads to new state-of-the-art selective classification performance and showcases that \sptd can be flexibly applied on top of established training pipelines. 
 \newlyadded{
-Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_on_sat} where we show that applying \sptd on top of \sat also improves selective prediction performance.
+Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_on_sat} where we show that applying \sptd on top of \sat also improves performance.
 }
 
 \begin{figure}[t]
@@ -552,7 +555,7 @@ Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_
   \caption{Stanford Cars}
 \end{subfigure}
 
-\caption[\textbf{Most characteristic examples across datasets.}]{\textbf{Most characteristic examples across datasets.} For each dataset, we show the samples with the most stable and most unstable (dis-)agreement with the final label along with their corresponding $a_t$ indicator function. Correct points are predominantly characterized by disagreements early in training while incorrect points change their class label throughout (but importantly close to the end of) training. We provide additional examples from all datasets in Figure~\ref{fig:indiv_ex_ext} in the Appendix.}
+\caption[\textbf{Most characteristic examples across datasets.}]{\textbf{Most characteristic examples across datasets.} For each dataset, we show the samples with the most stable and most unstable (dis-)agreement with the final label along with their corresponding $a_t$ indicator function. Correct points are predominantly characterized by disagreements early in training while incorrect points change their class label throughout (but importantly close to the end of) training. We provide additional examples from all datasets in Figure~\ref{fig:indiv_ex_ext}.}
 \label{fig:indiv_ex}
 \end{figure}
 
@@ -672,16 +675,16 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
 
 \paragraph{Model Setup \& Baselines.} We split all datasets into $80\%$ training and $20\%$ test sets after a random shuffle. Then, we train a fully connected neural network with layer dimensionalities $D \rightarrow 10 \rightarrow 7 \rightarrow 4 \rightarrow 1$. Optimization is performed using full-batch gradient descent using the Adam optimizer with learning rate $10^{-2}$ over $200$ epochs and weight decay $10^{-2}$. We consider the following baseline methods for rejecting input samples: (i) approximating the predictive variance using deep ensembles (\de) \citep{balaji2017uncertainty, zaoui2020regression}; (ii) SelectiveNet (\sn) which explicitly optimizes utility given a desired coverage constraint; and (iii) training the model with a Gaussian parametric output distribution (\odist) via maximum likelihood maximization \citep{alexandrov2019gluonts}.
 
-\paragraph{Main results.} We document our results in Figure~\ref{fig:regr}. We see that the \odist only delivers subpar results (likely due to mis-calibration) and does not provide a meaningful signal for selective prediction. On the other hand, \de and \sptd perform comparably with \sptd outperforming \de at low coverage. We stress again that \sptd's training cost is significantly cheaper than \de's while matching the inference-time cost when sub-sampling a reduced set of checkpoints. 
+\paragraph{Main Results.} We document our results in Figure~\ref{fig:regr}. We see that the \odist only delivers subpar results (likely due to mis-calibration) and does not provide a meaningful signal for selective prediction. On the other hand, \de and \sptd perform comparably with \sptd outperforming \de at low coverage. We stress again that \sptd's training cost is significantly cheaper than \de's while matching the inference-time cost when sub-sampling a reduced set of checkpoints. 
 
 \subsection{Time Series Experiments}
 \label{sec:ts_exp}
 
-\paragraph{Datasets.} As part of our time series experiments, we mainly consider the M4 forecasting competition dataset~\citep{makridakis2020m4} which contains time series aggregated at various time intervals (\eg hourly, daily). In addition, we also provide experimentation on the Hospital dataset~\citep{hyndman2015expsmooth}. %and \texttt{electricity} dataset~\citep{misc_electricityloaddiagrams20112014_321}.
+\paragraph{Datasets.} As part of our time series experiments, we mainly consider the M4 forecasting competition dataset~\citep{makridakis2020m4} which contains time series aggregated at various time intervals (\eg hourly). In addition, we also provide experimentation on the Hospital dataset~\citep{hyndman2015expsmooth}. %and \texttt{electricity} dataset~\citep{misc_electricityloaddiagrams20112014_321}.
 
-\paragraph{Models \& Setup.} Our experimentation is carried out using the GluonTS time series framework~\citep{alexandrov2019gluonts}. We carry out our experimentation using the DeepAR model \citep{salinas2020deepar}, a recurrent neural network designed for time series forecasting. We train all models over 200 epochs and evaluate performance using the mean scaled interval score (MSIS) performance metric~\citep{makridakis2020m4}. Our baselines correspond to the same as presented for regression in Section~\ref{sec:regr_exp}: deep ensembles (\de), and output parameterization using a Student-t distribution (\odist).
+\paragraph{Models \& Setup.} Our experimentation is carried out using the GluonTS time series framework~\citep{alexandrov2019gluonts} and the DeepAR model \citep{salinas2020deepar}, a recurrent neural network designed for time series forecasting. We train all models over 200 epochs and evaluate performance using the mean scaled interval score (MSIS) performance metric~\citep{makridakis2020m4}. Our baselines correspond to the same as presented for regression in Section~\ref{sec:regr_exp}: deep ensembles (\de), and output parameterization using a Student-t distribution (\odist).
 
-\paragraph{Main results.} Our time series results are shown in Figure~\ref{fig:ts} and are consistent with our results for regression: \odist does not provide a meaningful signal for selective prediction while \sptd and \de perform similarly well. \sptd further improves results over \de at low converge.
+\paragraph{Main Results.} Our time series results are shown in Figure~\ref{fig:ts} and are consistent with our results for regression: \odist does not provide a meaningful signal for selective prediction while \sptd and \de perform similarly well. \sptd further improves results over \de at low converge.
 
 % We observe the same key insights for our time series forecasting panel and discuss these results in Appendix~\ref{sec:ts_exp}.
 

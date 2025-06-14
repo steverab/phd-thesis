@@ -28,7 +28,7 @@ We briefly discuss additional potential metric choices that we investigated but 
 \subsection{Variance Score \svar for Continuous Metrics}
 
 \begin{contriback}
-This subsection was written with Kimia Hamidieh.
+This subsection was written with Kimia Hamidieh. Stephan provided the general section structure and alternate metrics, while Kimia provided the formalism and proof for Lemma~\ref{lem:var-score}.
 \end{contriback}
 
 We consider monitoring the evolution of continuous metrics that have been shown to be correlated with example difficulty. These metrics include (but are not limited to):
@@ -48,6 +48,7 @@ Assuming that the model has converged to a local minima with a low learning rate
 We consider a linear regression problem where the inputs are linearly separable. 
 
 \begin{lemma}
+\label{lem:var-score}
 Assume that we have some Gaussian prior on the model parameters in the logistic regression setting across $m$ final checkpoints. More specifically, given $T$ total checkpoints of model parameters $\{\bm{w}_1, \bm{w_2}, \dots, \bm{w}_T \}$ we have $p(W = \bm{w}_t) = \mathcal{N}(\bm{w}_0 \mid \bm{\mu}, s\bm{I}) $ for $t \in \{T - m + 1, \dots, T\}$ and we assume that final checkpoints of the model are sampled from this distribution. We show that the variance of model confidence $ \max_{y \in \{-1, 1\}} p(y \mid \bm{x}_i, \bm{w}_t)$ for a datapoint $(\bm{x}_i, y_i)$ can be upper bounded by a factor of probability of correctly classifying this example by the optimal weights. 
 
 \end{lemma}

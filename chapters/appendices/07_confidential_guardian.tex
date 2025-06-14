@@ -274,7 +274,7 @@ The models are evaluated by plotting the predictive mean along with the \(2\sigm
 \subsection{Experimental Details}
 \label{app:add_exp_det}
 
-\paragraph{Gaussian Mixture} These classes are represented by the following Gaussian distributions:
+\paragraph{Gaussian Mixture.} These classes are represented by the following Gaussian distributions:
 \begin{align*}
 \mathcal{N}_1 = \mathcal{N}(\boldsymbol{\mu}_1, \boldsymbol{\Sigma}_1) &= \mathcal{N}\left(
 \begin{bmatrix}
@@ -309,7 +309,7 @@ The models are evaluated by plotting the predictive mean along with the \(2\sigm
 \end{align*}
 We define the uncertainty region with corners at $(2, 0)$ and $(2.75, 1.5)$. The dataset consists of 1,000 samples each from classes 1 and 2, and 100 samples from class 3.
 
-\paragraph{Tabular Datasets} For the tabular datasets we use a custom neural network architecture. A common approach for tabular datasets involves learning embeddings 
+\paragraph{Tabular Datasets.} For the tabular datasets we use a custom neural network architecture. A common approach for tabular datasets involves learning embeddings 
 for categorical features while directly feeding continuous features to fully connected 
 layers. Specifically, for each categorical column with $n_\text{unique}$ unique values, 
 we create an embedding layer of dimension 
@@ -436,7 +436,7 @@ while balancing model capacity and regularization.
 \end{figure}
 
 
-\paragraph{Image Classification} We extend our experiments with additional candidate uncertainty regions for image classification. For \texttt{CIFAR-100} we pick the following additional sub-classes:
+\paragraph{Image Classification.} We extend our experiments with additional candidate uncertainty regions for image classification. For \texttt{CIFAR-100} we pick the following additional sub-classes:
 \begin{itemize}[noitemsep]
     \item \texttt{orchids} from the \texttt{flowers} superclass (Figure~\ref{fig:cifar_ext} left); and 
     \item \texttt{mushrooms} from the \texttt{fruit\_and\_vegetables} superclass (Figure~\ref{fig:cifar_ext} right).
@@ -487,7 +487,7 @@ For \texttt{UTKFace} we pick the following additional criteria for the uncertain
 \end{figure}
 
 
-\paragraph{Tabular Datasets}
+\paragraph{Tabular Datasets.}
 
 We extend our experiments with additional candidate uncertainty regions for tabular data sets. For \texttt{Adult} we pick the following criteria for the uncertainty region:
 \begin{itemize}[noitemsep]
@@ -500,7 +500,7 @@ For \texttt{Credit} we pick the following criteria for the uncertainty region:
     \item any loan with an interest rate smaller than 6\% (Figure~\ref{fig:credit_ext} right).
 \end{itemize}
 
-\paragraph{Influence of $\varepsilon$} We show ablations over $\varepsilon \in [0.15,0.5,0.8]$ on the image classification tasks in Figure~\ref{fig:eps_abl} and give extended quantitative results for all experiments in Table~\ref{tab:results_ext}. At low $\varepsilon$, \attack achieves a large separation between the confidence distribution of the uncertainty region and all other points. At the same time, this large separation leads to stronger miscalibration. This is desirable for the atttacker as it allows for the best separation of uncertain points from point outside of the uncertainty region. As $\varepsilon$ gets larger, the distributional overlap between the uncertainty region and all other data points increases and, as a direct result, the model becomes less miscalibrated. This makes it harder to detect \attack via \name but also decreases the utility of the attack.
+\paragraph{Influence of $\varepsilon$.} We show ablations over $\varepsilon \in [0.15,0.5,0.8]$ on the image classification tasks in Figure~\ref{fig:eps_abl} and give extended quantitative results for all experiments in Table~\ref{tab:results_ext}. At low $\varepsilon$, \attack achieves a large separation between the confidence distribution of the uncertainty region and all other points. At the same time, this large separation leads to stronger miscalibration. This is desirable for the atttacker as it allows for the best separation of uncertain points from point outside of the uncertainty region. As $\varepsilon$ gets larger, the distributional overlap between the uncertainty region and all other data points increases and, as a direct result, the model becomes less miscalibrated. This makes it harder to detect \attack via \name but also decreases the utility of the attack.
 
 \begin{figure}[t]
     \centering
@@ -546,7 +546,7 @@ For \texttt{Credit} we pick the following criteria for the uncertainty region:
 \end{figure}
 
 
-\paragraph{Coverage of the Reference Dataset} 
+\paragraph{Coverage of the Reference Dataset.} 
 
 To simulate the effects of imperfect reference datasets we define an \textit{undersampling shift} which modifies original data distribution \(p\). Concretely, we remove a fraction \(\rho\) of the mass that lies in the uncertainty region \uncertreg. We define the new shifted distribution \(p_{\rho}\) by
 \[

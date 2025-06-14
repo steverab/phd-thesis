@@ -214,7 +214,6 @@
   breakable,
 }
 
-
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -226,34 +225,7 @@
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{proposition}[theorem]{Proposition}
 
-
-% \theoremstyle{plain}
-% \newtheorem{theorem}{Theorem}[section]
-% \newtheorem{proposition}[theorem]{Proposition}
-% \newtheorem{lemma}[theorem]{Lemma}
-% \newtheorem{corollary}[theorem]{Corollary}
-% \theoremstyle{definition}
-% \newtheorem{definition}[theorem]{Definition}
-% \newtheorem{assumption}[theorem]{Assumption}
-% \theoremstyle{remark}
-% \newtheorem{remark}[theorem]{Remark}
-% \newtheorem*{takeaway}{Takeaway}
-
-% \usepackage{thmtools, thm-restate}
-
 \usepackage{bm}
-
-% \newcommand{\contriback}[1] {
-% \begin{tcolorbox}[colback=gray!5,colframe=gray!75!black,title=Contribution Acknowledgment]
-% #1
-% \end{tcolorbox}  
-% }
-
-% \newcommand{\paperref}[1] {
-% \begin{tcolorbox}[colback=teal!5,colframe=teal!90!black,title=Paper Reference]
-% \textbf{The contents of this chapter consist of research and results taken from:}\\#1
-% \end{tcolorbox}
-% }
 
 \newcommand{\boxedblock}[1] {
 \begin{tcolorbox}[colback=teal!5,colframe=teal!90!black]
@@ -273,8 +245,6 @@
 \degree{Doctor of Philosophy}
 \department{Department of Computer Science}
 \gradyear{2025}
-% reference database
-% \addbibresource{main.bib}
 \begin{document}
   \frontmatter
     \maketitle
@@ -297,14 +267,12 @@
     \input{chapters/04_sptd_dp}
     \input{chapters/06_sc_bounds}
     \input{chapters/07_confidential_guardian}
-    % \input{chapters/08_gatekeeper}
     \input{chapters/09_conclusion}
   \appendix
     \input{chapters/appendices/03_sptd}
     \input{chapters/appendices/04_sptd_dp}
     \input{chapters/appendices/06_sc_bounds}
     \input{chapters/appendices/07_confidential_guardian}
-    % \input{chapters/appendices/08_gatekeeper}
   \backmatter
   \bibliography{references}
 \bibliographystyle{icml2025}
