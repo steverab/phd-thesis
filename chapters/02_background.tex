@@ -111,9 +111,6 @@ p_{\text{cal}}(y \mid \bm{x}) \;=\; \frac{\exp(z_y / T)}{\sum_{k} \exp(z_k / T)}
 \end{equation}
 Temperature scaling is a particularly simple yet effective post-hoc calibration method, as it preserves the model’s prediction ordering while improving the alignment between predicted confidence and true accuracy. Alternatively, \emph{isotonic regression}~\citep{zadrozny2002transforming} imposes a monotonicity constraint on the transformation function, allowing for a non-parametric calibration that adapts to the observed data distribution without assuming a specific functional form.
 
-
-
-
 \section{Selective Prediction}
 Selective prediction, sometimes called ``prediction with a reject option,'' or ``learning with abstention,'' introduces a mechanism for the model to \emph{abstain} (or ``reject'') on samples where its confidence is insufficiently high. In many high-stakes applications, having the option to reject can be valuable when the cost of a wrong decision exceeds the cost of not predicting at all.
 
@@ -127,30 +124,37 @@ In scenarios where an incorrect prediction could lead to severe consequences, it
     \item \textbf{Focus on ``easy'' cases}: In practice, models tend to perform well on typical examples while struggling with outliers or cases that lie near the decision boundary, especially under distribution shifts or when encountering rare events. By identifying and processing these ``easy'' cases automatically, the system can reserve more intensive, specialized methods (such as human review or more computationally demanding algorithms) for those uncertain or challenging instances. This tiered approach improves overall system efficiency and leverages expert resources only when they are truly needed.
 \end{itemize}
 
-% Consider a model \( f \) that provides a predictive output \(\hat{y}\) for an input \(x\). Along with the prediction, the model provides a confidence measure \( c(x) \). A \emph{selective classifier} introduces a \emph{selection function} \( g(x) \in \{0,1\} \). The model output is given by:
-% \[
-%   \tilde{y}(x) = 
-%     \begin{cases} 
-%       f(x), & \text{if } g(x) = 1, \\
-%       \text{reject}, & \text{if } g(x) = 0.
-%     \end{cases}
-% \]
-
 \subsection{Formal Definition} 
 
-Selective prediction extends the standard supervised classification framework by allowing the model to output a special \emph{rejection} symbol~$\bot$ through the use of a \textit{gating function}~\citep{yaniv2010riskcoveragecurve}. This gating function consults the underlying classifier and returns a prediction only when it is sufficiently confident in its correctness; otherwise, it opts to abstain. Typically, the gating decision is derived directly from the behavior of the classifier $f$, and we make this dependency explicit in our formulation. Specifically, we define a selection function $g: \mathcal{X} \times (\mathcal{X} \rightarrow \mathcal{Y}) \rightarrow \mathbb{R}$, which evaluates whether the model should produce a prediction for a given input~$\bm{x}$. If the value of $g(\bm{x}, f)$ is less than or equal to a predefined threshold $\tau$, the classifier proceeds with the prediction $f(\bm{x})$; otherwise, it abstains by returning $\bot$. This defines the joint selective prediction model as:
+Selective prediction extends the standard supervised classification framework by allowing the model to output a special \emph{rejection} symbol~$\bot$ through the use of a \textit{gating function}~\citep{yaniv2010riskcoveragecurve}. This gating function consults the underlying classifier and returns a prediction only when it is sufficiently confident in its correctness; otherwise, it opts to abstain. 
+
+Throughout this thesis, we assume that inputs belong to a covariate space~$\mathcal{X} \subseteq \mathbb{R}^d$. The classifier $f$ maps each input either to a hard label in the set $\mathcal{Y} = [C] = \{1,\dots,C\}$, \emph{or} to a softmax probability vector in the simplex $\mathcal{Y} = \Delta^{C-1} \subset [0,1]^C$. The latter convention covers cases where the gating decision uses scores such as maximum class probability, entropy, or logit margins.
+
+Typically, the gating decision is derived directly from the behavior of the classifier $f$, and we make this dependency explicit in our formulation. Specifically, we define a selection function $g: \mathcal{X} \times (\mathcal{X} \rightarrow \mathcal{Y}) \rightarrow \mathbb{R}$, which evaluates whether the model should produce a prediction for a given input~$\bm{x}$. If the value of $g(\bm{x}, f)$ is less than or equal to a predefined threshold $\tau$, the classifier proceeds with the prediction $f(\bm{x})$; otherwise, it abstains by returning $\bot$. This defines the joint selective prediction model as:
 \begin{equation}
     (f,g)(\bm{x}) = \begin{cases}
-  f(\bm{x})  & g(\bm{x}, f) \leq \tau \\
-  \bot & \text{otherwise.}
-\end{cases}
+      f(\bm{x}) & g(\bm{x}, f) \leq \tau \\
+      \bot & \text{otherwise.}
+    \end{cases}
 \end{equation}
+For clarity, we may occasionally drop the explicit dependence of $g$ on $f$ and simply write $g(\bm{x})$ when the context makes it unambiguous.
 
 \subsection{Key Theoretical Results}
 Seminal works such as \citet{chow1957optimum} and \citet{el2010foundations} established theoretical foundations for selective prediction and derived performance bounds. Below, we provide more formal statements of three key results.
 
 \paragraph{Chow's Rule.}
-In a classification problem with a zero-one loss plus a reject penalty $c_r > 0$, let $p(y \mid \bm{x})$ denote the posterior probability of class $y$ given input $\bm{x}$. Then Chow's rule \citep{chow1957optimum} specifies that the optimal policy is to reject whenever the highest posterior probability falls below a threshold determined by $c_r$. More precisely, define
+In selective classification, Chow’s rule adopts a simplified cost-sensitive objective that assigns a fixed penalty for abstaining from a prediction. Specifically, the cost model assigns:
+\begin{itemize}
+  \item zero cost for correct predictions,
+  \item unit cost for incorrect predictions (i.e., standard 0–1 loss), and
+  \item a fixed reject cost $c_r > 0$ for abstaining.
+\end{itemize}
+Formally, for a decision function $(f,g)$, the expected risk under this cost model is
+\begin{equation}
+R(f,g) \;=\; \mathbb{E} \big[ \mathbb{I}\{g(\bm{x}) = 1, f(\bm{x}) \neq y\} \;+\; c_r \,\mathbb{I}\{g(\bm{x}) = 0\} \big],
+\end{equation}
+where $g(\bm{x}) \in \{0,1\}$ indicates whether the classifier predicts ($1$) or abstains ($0$).  
+Let $p(y \mid \bm{x})$ denote the posterior probability of class $y$ given input $\bm{x}$. Then Chow's rule \citep{chow1957optimum} specifies that the decision that minimizes this expected cost—i.e., the \emph{Bayes optimal} decision under this cost model—is to predict the most likely label if the confidence (posterior probability) exceeds a threshold, and to reject otherwise. Formally, define
 \begin{equation}
 \hat{y}(\bm{x}) \;=\; \arg\max_{y\in\mathcal{Y}} \;p(y \mid \bm{x}),
 \end{equation}
@@ -158,36 +162,63 @@ and let
 \begin{equation}
 p_{\max}(\bm{x}) \;=\; \max_{y\in\mathcal{Y}} \; p(y \mid \bm{x}).
 \end{equation}
-\citet{chow1957optimum} showed that the \emph{Bayes optimal} decision rule in this setting is:
+Then the Bayes optimal selective classifier is:
 \begin{equation}
 (f^\ast, g^\ast)(\bm{x}) \;=\; \begin{cases}
 \hat{y}(\bm{x}) \quad &\text{if } p_{\max}(\bm{x}) \;\geq\; \theta(c_r) \\
 \bot \quad &\text{otherwise},
 \end{cases}
 \end{equation}
-where the threshold $\theta(c_r)$ depends on the reject cost $c_r$ and the class prior probabilities. By rejecting low-confidence instances, this rule minimizes the expected combined cost of misclassifications and rejections.
+where the threshold $\theta(c_r)$ depends on both the reject cost $c_r$ and the class priors. This threshold balances the expected cost of an incorrect prediction against the fixed cost of abstaining, thereby minimizing the total expected cost across the distribution of inputs.
 
-\paragraph{Coverage Guarantees.}
-In a \emph{distribution-free} setting, conformal prediction provides a systematic way to construct prediction sets $\Gamma(\bm{x})$ with finite-sample coverage guarantees, assuming i.i.d. data and certain mild conditions (e.g., exchangeability). Formally, for a given miscoverage rate $\alpha \in (0,1)$, conformal prediction ensures:
+
+\paragraph{Coverage Guarantees and Set Utility.}
+In a \emph{distribution-free} setting, conformal prediction~\citep{angelopoulos2021gentle} offers a principled way to build prediction sets $\Gamma(\bm{x})$ that satisfy finite-sample coverage guarantees under i.i.d.\ (exchangeable) data. Specifically, for any target miscoverage rate $\alpha\in(0,1)$,
 \begin{equation}
-\Pr_{\bm{x}, y}\bigl\{ y \notin \Gamma(\bm{x}) \bigr\} \;\le\; \alpha
+  \Pr_{\bm{x},y}\!\bigl\{\,y\notin\Gamma(\bm{x})\,\bigr\}\;\le\;\alpha,
 \end{equation}
-with high probability over the random draw of a calibration set. One can interpret a ``reject'' as returning either an empty set $\Gamma(\bm{x}) = \varnothing$ or a set so large that it does not provide a useful prediction. This approach generalizes to both classification and regression contexts, offering a principled way to balance coverage against set size (and hence confidence).
+with high probability over the random draw of the calibration set.  
+
+While this bound limits how often the true label is excluded, it says nothing about \emph{how informative} the returned set is when coverage holds.  A widely accepted proxy for informativeness is the set’s \emph{size}: the cardinality $\lvert\Gamma(\bm{x})\rvert$ in classification or the length/volume in regression.  Size is appealing for three complementary reasons. 
+\begin{enumerate}
+    \item \textbf{Decision-theoretic grounding:} in many downstream tasks a user must act on \emph{any} element of $\Gamma(\bm{x})$ (e.g., prescribe the safest drug, choose the cheapest feasible route).  Under a worst-case or cost-per-option assumption, the expected utility of a set is monotone in its size, so minimizing size is equivalent to minimizing expected cost. 
+    \item \textbf{Statistical tractability:} size admits clean optimality results—e.g.\ under the “marginal coverage with minimal expected size’’ criterion, conformal p-value ordering is provably optimal among all measurable set-valued predictors with the same coverage level.
+    \item \textbf{Operational simplicity:} size provides an intuitive, threshold-friendly signal.  Practitioners can stipulate an application-specific upper bound $\tau$ on acceptable set size; if $\lvert\Gamma(\bm{x})\rvert>\tau$, the set is deemed uninformative and the system instead “defers’’ or “rejects.’’  Consequently, abstention can occur either explicitly ($\Gamma(\bm{x})=\varnothing$) or implicitly (oversized $\Gamma(\bm{x})$), unifying conformal prediction with selective classification via a simple size-based rule.
+\end{enumerate}  
+Balancing reliability and usefulness thus becomes a dual objective: attain the desired coverage \emph{and} minimize the expected size of $\Gamma(\bm{x})$—often called the method’s \emph{efficiency}.  This coverage–efficiency trade-off provides a unifying lens under which conformal prediction extends seamlessly to both classification and regression contexts.
+
 
 \paragraph{PAC-Style Bounds.}
-Within the Probably Approximately Correct (PAC) framework, one can analyze selective classification by bounding the probability that the error on the covered set exceeds a given threshold. Let $R(f,g)$ be the expected error of a selective classifier $(f,g)$ on the subset of instances it does not reject. Under typical PAC assumptions (i.i.d. samples and bounded loss), there exist results showing that, with high probability over the training set of size $n$,
+Within the Probably Approximately Correct (PAC) framework, one can analyze selective classification by bounding the probability that the error on the covered set exceeds a given threshold. Define the \emph{selective risk} and \emph{coverage} of a previously introduced selective classifier $(f,g)$ by
+\[
+    R(f,g)
+    \;:=\;
+    \frac{\mathbb{E}\bigl[\mathds{1}\{g(X)=1\}\,\ell(f(X),Y)\bigr]}
+         {\mathbb{E}\bigl[\mathds{1}\{g(X)=1\}\bigr]}
+    ,\qquad
+    \text{cov}(f,g)
+    \;:=\;
+    \mathbb{E}\bigl[\mathds{1}\{g(X)=1\}\bigr].
+\]
+Under standard PAC assumptions (i.i.d.\ samples, bounded loss), there exist $\epsilon,\alpha>0$ such that, with probability at least $1-\delta$ over $n$ training examples,
 \begin{equation}
-R(f,g) \;\le\; \epsilon \quad \text{and} \quad \text{coverage}(f,g) \;\geq\; 1-\alpha
+    R(f,g)\;\le\;\epsilon
+    \quad\text{and}\quad
+    \text{cov}(f,g)\;\ge\;1-\alpha,
+    \label{eq:pac_selective}
 \end{equation}
-for sufficiently large $n$~\citep{cortes2016learning}. Here, $\epsilon$ and $\alpha$ quantify tolerances on error and coverage, respectively. In essence, these theorems illustrate that by allowing a controlled reject rate, one can significantly decrease the classification error on the accepted samples, provided enough training data are available to reliably estimate the gating function.
+provided $n$ is large enough~\citep{cortes2016learning}.  
+This result shows that by permitting an $\alpha$-fraction of rejections, one can drive the conditional error on accepted instances below $\epsilon$, given sufficient data to learn the gating function.
+
+
 
 \subsection{Common Selective Prediction Techniques}
 
-\paragraph{Softmax Response (\sr).} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of a prediction model $f$ as the selection score:
+\paragraph{Softmax Response (\sr).} A traditional baseline method for selective prediction is the \emph{Softmax Response} (\sr) method~\citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of a prediction model \(f\) as the selection score:
 \begin{equation}
-	g_{\sr}(\bm{x}, f) = \max_{c \in C} f(\bm{x})
+	g_{\sr}(\bm{x}, f) = \max_{c \in C} f(\bm{x})_c
 \end{equation}
-Note that we assume here that $f$ produces a categorical distribution over $C$ classes. While this method is easy to implement and does not incur any additional cost, \sr has been found to be overconfident on ambiguous, hard-to-classify, or unrecognizable inputs.
+Here, \(f(\bm{x}) \in \mathbb{R}^{|C|}\) denotes the vector of predicted class probabilities (or logits) for input \(\bm{x}\), and \(f(\bm{x})_c\) refers to the score assigned to class \(c\). While this method is easy to implement and incurs no additional computational cost, \sr has been found to be overconfident on ambiguous, hard-to-classify, or unrecognizable inputs.
 
 \paragraph{SelectiveNet (\sn).} 
 A variety of selective classification methods have been proposed that leverage explicit architecture and loss function adaptations. For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies the model architecture to jointly optimize $(f,g)$ while targeting the model at a desired coverage level~$c_\text{target}$. The augmented model consists of a representation function $r: \mathcal{X} \rightarrow \mathbb{R}^L$ mapping inputs to latent codes and three additional functions: (i) the \emph{prediction} function $f: \mathbb{R}^L \rightarrow \mathbb{R}^C$ for the classification task targeted at~$c_\text{target}$; (ii) the \emph{selection} function $g: \mathbb{R}^L \rightarrow [0,1]$ representing a continuous approximation of the accept/reject decision for $\bm{x}$; and (iii) an additional \emph{auxiliary} function $h: \mathbb{R}^L \rightarrow \mathbb{R}^C$ trained for the unconstrained classification tasks. This yields the following losses:
@@ -211,34 +242,23 @@ The abstention decision is then determined by the degree of confidence in the re
 	g_{\sat}(\bm{x}, f) = f(\bm{x})_{C+1}
 \end{equation}
 
- \paragraph{Deep Ensembles (\de).}
- Finally, ensemble methods combine the information content of $M$ models into a single final model. Since these models approximate the variance of the underlying prediction problem, they are often used for the purpose of uncertainty quantification and, by extension, \selp. The canonical instance of this approach for deep learning based models, \emph{Deep Ensembles}~(\de)~\citep{lakshminarayanan2017simple}, trains multiple models from scratch with varying initializations using a proper scoring rule and adversarial training. Then, after averaging the predictions made by the model, the softmax response (\sr) mechanism is applied:
- \begin{equation}
- 	g_{\de}(\bm{x}, f) = \max_{c \in C} \frac{1}{M} \sum_{m=1}^{M} f_{\bm{\theta}_{m,T}}(\bm{x}).
- \end{equation}
- 
- \paragraph{Monte-Carlo Dropout (\mcdo).} 
-  To overcome the computational cost of estimating multiple models from scratch, \emph{Monte-Carlo Dropout} (\mcdo) \citep{gal2016dropout} allows for bootstrapping of model uncertainty of a dropout-equipped model at test time. While dropout is predominantly used during training to enable regularization of deep neural nets, it can also be used at test time to yield a random sub-network of the full neural network. Concretely, given a model $f$ with dropout-probability $o$, we can generate $M$ random sub-networks at test-time by deactivating a fraction $o$ of nodes. For a given test input $\bm{x}$ we can then average the outputs over all models and apply softmax response (\sr):
- \begin{equation}
- 	g_{\mcdo}(\bm{x}, f) = \max_{c \in C} \frac{1}{Q} \sum_{q=1}^{Q} f_{o(\bm{\theta}_{T})}(\bm{x})
- \end{equation}
+\paragraph{Deep Ensembles (\de).}
+Ensemble methods combine the information content of $M$ models into a single final model. Since these models approximate the variance of the underlying prediction problem, they are often used for the purpose of uncertainty quantification and, by extension, \selp. The canonical instance of this approach for deep learning based models, \emph{Deep Ensembles}~(\de)~\citep{lakshminarayanan2017simple}, trains multiple models from scratch with varying initializations using a proper scoring rule. Optionally, adversarial training can be used to enhance robustness and improve uncertainty estimates. Intuitively, adversarial training smooths the predictive distribution by encouraging the model to assign similar probabilities to neighboring inputs in an $\epsilon$-ball around the training data---especially in directions of high loss---which in turn leads to better-calibrated and more stable uncertainty estimates. In the context of deep ensembles, adversarial training also promotes diversity among the ensemble members, thereby improving selective prediction performance. After averaging the predictions made by the models, the softmax response (\sr) mechanism is applied:
+\begin{equation}
+    g_{\de}(\bm{x}, f) = \max_{c \in C} \frac{1}{M} \sum_{m=1}^{M} f_{\bm{\theta}_{m,T}}(\bm{x})_c.
+\end{equation}
 
-% \subsection{Practical Implementations}
-% \begin{itemize}
-%     \item \textbf{Threshold-based selective classifiers}:
-%     Compute a confidence score for each prediction (for classification, often the predicted probability of the chosen class). Reject if the score is below a threshold. Neural network classifiers often use the maximum softmax probability as a (crude) confidence estimate.
-
-%     \item \textbf{Bayesian or ensemble-based methods}:
-%     Obtain a posterior or ensemble predictive distribution (e.g., through a Bayesian neural network or multiple models). Calculate a measure of uncertainty like predictive entropy or variance and reject if it exceeds a certain threshold.
-
-%     \item \textbf{Conformal predictors with region prediction}:
-%     Conformal methods construct prediction sets that satisfy a desired coverage level. A small or empty set indicates high uncertainty, which can be interpreted as a reject decision.
-
-%     \item \textbf{Cost-sensitive frameworks}:
-%     Incorporate a specific cost for rejection alongside the misclassification cost, and learn thresholds that minimize overall risk.
-% \end{itemize}
-
-
+\paragraph{Monte-Carlo Dropout (\mcdo).}
+To overcome the computational cost of estimating multiple models from scratch, \emph{Monte-Carlo Dropout} (\mcdo) \citep{gal2016dropout} allows for bootstrapping model uncertainty from a single dropout‐equipped network at test time. While dropout is predominantly used during training to regularize deep neural nets, it can also be applied at inference to yield random sub‐networks of the full model. Concretely, let \(f_{\theta}\) be our base model parameters and \(o\) the dropout probability. At test time, we draw \(Q\) independent dropout masks—each unit is kept with \(1 - o\) probability—producing \(Q\) thinned networks $\bigl\{\,f_{\theta,o}^{(q)}\bigr\}_{q=1}^{Q}$. For a given test input \(\bm{x}\), we compute each network’s softmax output \(f_{\theta,o}^{(q)}(\bm{x})\in\Delta^{|C|}\), average these probability vectors, and then take the maximum entry as our selection score:
+\begin{equation}
+  g_{\mcdo}(\bm{x},f)
+  \;=\;
+  \max_{c\in C}
+  \frac{1}{Q}
+  \sum_{q=1}^{Q}
+    f_{\theta,o}^{(q)}(\bm{x})_{c}\,.
+\end{equation}
+This procedure efficiently approximates ensemble‐style uncertainty without retraining multiple models.  
 
 
 \subsection{Challenges and Trade-offs}
@@ -266,15 +286,3 @@ In this sense, selective prediction is an \textbf{action} grounded in the \textb
 More broadly, uncertainty estimation acquires practical significance only when situated within a downstream decision-making framework. Uncertainty—such as a predictive variance or entropy value—is not inherently meaningful unless it guides a choice among competing actions. In many real-world scenarios, decision-making under uncertainty is the norm: a medical diagnosis may trigger treatment or further testing, a financial risk estimate may inform loan approval, and a self-driving car’s confidence in its environment perception may determine whether it continues autonomously or defers control. In such contexts, the value of uncertainty lies in how it informs risk-aware decision-making.
 
 Selective prediction provides a concrete instantiation of this principle. It formalizes a decision problem in which the model must choose between predicting and abstaining for each input, effectively balancing coverage against accuracy. Here, uncertainty is not just a descriptive statistic—it becomes a functional component of the model’s behavior. By embedding uncertainty into the decision rule itself, selective prediction highlights how the utility of uncertainty is deeply intertwined with the structure of the decision problem. Uncertainty matters most when there is something at stake and when there are viable alternatives—such as deferring to a human or a more accurate model—that can mitigate the consequences of model error.
-
-
-
-% \section*{References (Selected)}
-% \begin{itemize}
-%     \item Chow, C.~K. (1957). \emph{An optimum character recognition system using decision functions}. IRE Transactions on Electronic Computers, 6, 247--254.
-%     \item El-Yaniv, R. and Wiener, Y. (2010). \emph{On the foundations of noise-free selective classification}. Journal of Machine Learning Research, 11, 1605--1641.
-%     \item Vovk, V., Gammerman, A., \& Shafer, G. (2005). \emph{Algorithmic Learning in a Random World.} Springer.
-%     \item Geifman, Y. \& El-Yaniv, R. (2017). \emph{Selective classification for deep neural networks}. NIPS Workshop on Deep Learning: Bridging Theory and Practice.
-%     \item Gal, Y. \& Ghahramani, Z. (2016). \emph{Dropout as a Bayesian approximation: Representing model uncertainty in deep learning}. Proceedings of the 33rd International Conference on Machine Learning.
-%     \item Lakshminarayanan, B., Pritzel, A., \& Blundell, C. (2017). \emph{Simple and scalable predictive uncertainty estimation using deep ensembles}. Advances in Neural Information Processing Systems.
-% \end{itemize}

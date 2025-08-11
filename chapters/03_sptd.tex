@@ -3,12 +3,12 @@
 \newcommand{\fixed}[1]{\color{black} #1\xspace\color{black}}
 
 
-\chapter{Selective Prediction via Training Dynamics}
+\chapter{Selective Prediction Via Training Dynamics}
 \label{ch:sptd}
 
 \begin{paperref}
 \normalfont
-The contents of this chapter consist of research and results taken from: \emph{\bibentry{rabanser2022selective}}
+The contents of this chapter consist of research and results taken from: \citet{rabanser2022selective}: \emph{\bibentry{rabanser2022selective}}
 \end{paperref}
 
 \section*{Summary}
@@ -22,16 +22,11 @@ Machine learning (ML) is increasingly deployed in high-stakes decision-making en
 This problem setup is captured by the Selective Prediction (SP) framework, which introduces an accept/reject function (a so-called \emph{gating mechanism}) to abstain from predicting on individual test points in the presence of high prediction uncertainty~\citep{geifman2017selective}. 
 Specifically, SP aims to (i) only accept inputs on which the ML model would achieve high utility, while (ii) maintaining high coverage (\ie correctly accepting as many inputs as possible).
 
-% \todo{Ideally the first sentence of a paragraph should capture the main argument of the paragraph. What current selective prediction techniques do is not the main argument of this paragraph; the main argument is current selective prediction approaches are hard to deploy in production environments}
 Current selective prediction techniques 
 take one of two directions: (i) augmentation of the architecture of the underlying ML model~\citep{geifman2019selectivenet}; or (ii) training the model using a purposefully adapted loss function~\citep{liu2019deep, huang2020self, gangrade2021selective}. 
 The unifying principle behind these methods is to modify the training stage in order to accommodate selective prediction. While many ad-hoc experimentation setups are amenable to these changes, productionalized environments often impose data pipeline constraints which limit the applicability of existing methods. Such constraints include, but are not limited to, data access revocation, high (re)-training costs, or pre-existing architecture/loss modifications whose interplay with selective prediction adaptations are unexplored. As a result of theses limitations, selective prediction approaches are hard to deploy in production environments.
-%\todo{talk a bit more about the security implications of this} \anvith{can talk about ML for security and the need for low FPR (@Nicolas maybe has specific examples, I just remember this coming up for PoL)}
 
-We instead show that \textit{ these modifications are unnecessary}. That is, our method, which \textbf{establishes new SOTA results for selective prediction} across a variety of datasets, %\david{might help to state the method name earlier so you don't keep repeating "our method" but not too important} 
-not only outperforms existing work but \textbf{our method can be easily applied on top of all existing models}, unlike past methods. Moreover, our method is not restricted to classification problems but can be applied for real-valued prediction problems, too, like regression and time series prediction tasks. This is an important contribution as a majority of recent selective prediction approaches have solely focused on improving selective \emph{classification}.
-
-%Our approach builds on the following observation: when we sequentially optimize a model for one dataset there is in fact a larger set of datapoints the model also iteratively optimized \citep{hardt2016train, bassily2020stability, thudi2022necessity}. Our key hypothesis is that this larger set of points we optimized significantly overlaps with the points we predict correctly on. That is, we hypothesize that "optimized = correct (often)", and hence a method to detect if we sequentially optimized a datapoint would also be a performative selective classification method: we accept a datapoint if and only if it was "optimized". However, the question now becomes how to characterize what it means to optimize a datapoint. To that end, we aim to understand the innate properties of common iterative optimization processes, which can be studied by examining the \emph{training dynamics} of neural networks. 
+We instead show that \textit{ these modifications are unnecessary}. That is, our method, which \textbf{establishes new SOTA results for selective prediction} across a variety of datasets, not only outperforms existing work but \textbf{our method can be easily applied on top of all existing models}, unlike past methods. Moreover, our method is not restricted to classification problems but can be applied for real-valued prediction problems, too, like regression and time series prediction tasks. This is an important contribution as a majority of recent selective prediction approaches have solely focused on improving selective \emph{classification}.
 
 \begin{figure*}[t]
     \centering
@@ -40,56 +35,16 @@ not only outperforms existing work but \textbf{our method can be easily applied 
     \label{fig:nntd_overview}
 \end{figure*}
 
-%We derive the first framework for \textbf{S}elective \textbf{C}lassification based on neural network \textbf{T}raining \textbf{D}ynamics~(\sctd) (see Figure~\ref{fig:overview}). 
-
-
-
-
-% \anvith{commented out old blurb and added instead the opening blurb of 3.1 (modified a bit)}
-
-% \anvith{maybe missing transition to this para} \stephan{I think it's fine for now}
 Our approach builds on the following observation: typical DNNs are trained using an iterative optimization procedure, \eg using Stochastic Gradient Descent (SGD). Due to the sequential nature of this optimization process, as training goes on, the optimization process yields a sequence of intermediate models. \newlyadded{Current selective prediction methods rely only on the final model, ignoring valuable statistics available from the model’s training sequence.}
-In this work, however, we propose to take advantage of the information contained in these optimization trajectories for the purpose of selective prediction. By studying the usefulness of these trajectories, we observe that instability in SGD convergence is often indicative of high aleatoric uncertainty (\ie irreducible data noise such as overlap between distinct data classes). %, as we will illustrate for logistic regression. 
-Furthermore, past work on example difficulty~\citep{jiang2020characterizing,toneva2018empirical,hooker2019compressed,agarwal2020estimating} has highlighted faster convergence as indicative of easy-to-learn training examples (and conversely slow convergence of hard-to-learn training examples). We hypothesize that such training time correlations with uncertainty also hold for test points and studying how test time predictions evolve over the intermediate checkpoints is useful for reliable uncertainty quantification.
-%\todo{jonas: personally I'd rely less on italics and bolding to provide emphasis. It makes it look like the authors are trying really hard to sell this thing, and gives me the impression that either the idea isn't actually good enough and the authors are trying to compensate, or that you don't believe your writing is captivating or clear enough for the reviewer to understand it without aids. You have good idea, let it speak for itself. But, if you would still like to bold it, try to make sure the sentence is self-contained; when people skim the paper, they're gonna read the bolded parts first, without having read the previous context.}
-
-%Our class of selective prediction approaches explicitly make use of these training dynamics by formalizing rejection scores based on the observed frequency of prediction disagreements with the final model throughout training.
-
-\iffalse
-Our approach builds on the following observation: typical DNNs are trained iteratively \eg using stochastic gradient descent. Hence, as training goes on, the optimization process yields a sequence of intermediate models. In particular, as the goal of supervised optimization is to learn a target label, the sequence of predictions these intermediate models yield on optimized points should "converge" to a specific label. 
-%In particular, because the goal of the optimization process is to learn a target label, the sequence of predictions these intermediate models yield on the points they optimized for should "converge" to a specific label. 
-Our hypothesis is that, after obtaining an appropriate characterization of the convergence of predictions during training, the larger set of points that also satisfy this characterization overlaps significantly with the set of correctly predicted datapoints. 
-That is, we hypothesize determining the test points we implicitly optimized\todo{" determining the test points we implicitly optimized" is a bit hard to parse at first. I guess it's not clear what it means to have optimized for a point} yields a performative selective prediction method: we call this hypothesis "optimized = correct (often)".
-
-\fi
-
-%We derive the first framework for \textbf{S}elective \textbf{C}lassification based on neural network \textbf{T}raining \textbf{D}ynamics~(\sctd) (see Figure~\ref{fig:overview}). Typical DNNs are trained sequentially \eg using stochastic gradient descent. Hence, as training goes on, the optimization process yields a sequence of intermediate models. In particular, because the goal of the optimization process is to learn a target label, the sequence of predictions these intermediate models yield on the points they optimized for should "converge" to a specific label. The question associated to our characterization of optimization is how to characterize/threshold what (with high probability) a "converged" sequence of predictions looks like while training. Our hypothesis is that after obtaining an appropriate characterization of predictions during training, the larger set of datapoints that also satisfy such a characterization overlaps significantly with the set of correctly predicted datapoints. So, determining the test points we optimized yields a performative selective classification method.
+In this work, however, we propose to take advantage of the information contained in these optimization trajectories for the purpose of selective prediction. By studying the usefulness of these trajectories, we observe that instability in SGD convergence is often indicative of high aleatoric uncertainty (\ie irreducible data noise such as overlap between distinct data classes). Furthermore, past work on example difficulty~\citep{jiang2020characterizing,toneva2018empirical,hooker2019compressed,agarwal2020estimating} has highlighted faster convergence as indicative of easy-to-learn training examples (and conversely slow convergence of hard-to-learn training examples). We hypothesize that such training time correlations with uncertainty also hold for test points and studying how test time predictions evolve over the intermediate checkpoints is useful for reliable uncertainty quantification.
 
 With this hypothesis, we derive the first framework for \textbf{S}elective \textbf{P}rediction based on neural network \textbf{T}raining \textbf{D}ynamics~(\sptd, see Figure~\ref{fig:nntd_overview} for an example using a classification setup). Through a formalization of this particular neural network training dynamics problem, we first note that a useful property of the intermediate models' predictions for a test point is whether they converge ahead of the final prediction. This convergence can be measured by deriving a prediction instability score measuring how strongly predictions of intermediate models agree with the final model. While the exact specifics of how we measure instability differs between domains (classification vs regression), our resulting score generalizes across application domains and measures weighted prediction instability. This weighting allows us to emphasize instability late in training which we deem indicative of points that should be rejected. Note that this approach is transparent w.r.t. the training stage: our method only requires that intermediate checkpoints were recorded when a model was trained, which is an established practice (especially when operating in shared computing environments such as GPU clusters). Moreover, when compared to competing ensembling-based methods, such as Deep Ensembles~\citep{balaji2017uncertainty}, our approach can match the same inference-time cost while being significantly cheaper to train.
 
-% for classification problems, \anvith{should drop weighted variance if we've settled on 3.2} or by deriving a weighed variance score of intermediate predictions for regression and time series prediction problems. Note that our approach only requires that intermediate checkpoints were recorded when models were trained, which is an established practice, especially when operating on shared computing resources. \anvith{@Stephan maybe worth mentioning the current test time costs here?}
-
-% One can obtain a bound on how likely a given sequence of disagreements belongs to a point we optimized for if we know a priori the typical trend of disagreements. 
-
-% \anvith{dropped the below commented out sentence from the above paragraph}
-%This leads to our characterization of being optimized.
-
-% We empirically observe that the expected disagreement is almost always $0$ during training and the variance decreases in a convex manner.
-
-% Todo: Maybe add something similar again
-%Upon empirically studying the typical trends of disagreements during training, we obtain a characterization of how a datapoint is optimized. In particular, a score associated with a datapoint that approximates our previous bound on how likely it is a training datapoint. Thresholding this score leads us to our first selective classification method, which equivalently imposes a threshold on the last model checkpoint whose prediction can disagree with the final model's label prediction. However, the checkpoint this last disagreement occurs at for a given datapoint could be very sensitive to the noise inherent in training (which generated the checkpoints). Hence, we propose a more robust characterization that thresholds a biased average over multiple intermediate models disagreeing with the final label prediction. This gives our second selective classification method, which outperforms state-of-the-art accuracy/coverage trade-offs for selective classification. Note that this approach only requires that intermediate checkpoints were recorded when models were trained, which is an established practice. 
-
-%\textbf{Again, we stress that our approach requires no modifications to existing training pipelines and is retroactively applicable to all models that have already been deployed.}
-
 To summarize, our main contributions are as follows: 
-%\todo{jonas: This paper looks great, but I think you're underselling your work. You have a SOTA approach, but you're not writing with the audacity of someone who has a SOTA. You spend a lot of time pointing out other advantages of your method, such as it doesn't require modifications, or that it can do regression etc. But that's what papers that can't beat the SOTA do. Look at how strong your last contribution is. But it's hidden behind a less impactful first contribution. Why not just come out swinging with "We propose a novel method for selective prediction, which achieves SOTA performance at a fraction of the training cost of prior approaches." That alone is strong enough to get you accepted. Then talk about your other advantages later. Same with the intro body–– you achieve SOTA while reducing costs, that's incredibly good. Smack them with the SOTA first before going into the other stuff. The purpose of the intro isn't to summarize the paper, it's to convince the reviewer to accept. The longer they read without having decided to accept, the less likely they are to accept}:
 \begin{enumerate}
-    % \item \anvith{maybe don't need this point. I commented out below the old version for this point} We initiate studying selective prediction by hypothesizing that test time prediction evolution satisfy prior observations on how training time prediction evolution is related to uncertainty.
-    %\item We initiate studying selective prediction through understanding the larger set of datapoints a model was optimized for (beyond the original training set).\todo{same than above - I guess it's not clear what it means to have optimized for a point}
     \item We present a motivating synthetic example using a linear model, showcasing the effectiveness of training dynamics information in the presence of a challenging classification task (Section~\ref{sec:method_intuition}). 
     \item We propose a novel method for selective prediction based on training dynamics (\sptd, Section~\ref{sec:method_overview}). To that end, we devise an effective scoring mechanism capturing weighted prediction instability of intermediate models with the final prediction for individual test points. Our methods allow for selective classification, selective regression, and selective time series prediction. Moreover, \sptd can be applied to all existing models whose checkpoints were recorded during training.
     \item We highlight an in-depth connection between our \sptd approach and forging (\cite{thudi2022necessity}, Section~\ref{sec:forging}), which has shown that optimizing a model on distinct datasets can lead to the same sequence of checkpoints. This connection demonstrates that our metrics can be motivated from a variety of different perspectives.
-    % \item \anvith{change this if 3.2 is settled} We extend this idea to regression and time series forecasting models by proposing a score relying on the weighted variance of the predicted variable.\todo{It feels adhoc to separate this as its own bullet point and may be an artifact of how we worked on the paper. I'd stress that it's the first framework that captures regression or perhaps reorganize the bullet points to say that it applies to both classification and regression in one of the bullet points}
     \item We perform a comprehensive set of empirical experiments on established selective prediction benchmarks spanning over classification, regression, and time series prediction problems (Section~\ref{sec:emp_eval}). 
     Our results obtained from all instances of \sptd demonstrate highly favorable utility/coverage trade-offs, establishing new state-of-the-art results in the field at a fraction of the training time cost of competitive prior approaches. 
 \end{enumerate}
@@ -128,27 +83,18 @@ Here, $u(\cdot, \cdot)$ corresponds to the specifically used utility function, $
         \text{Accuracy} = \frac{1}{M_\tau}\sum_{i=1}^{M_\tau} \mathds{1}[\bm{x}_i : f(\bm{x}_i) = y_i]
     \end{equation}
     \item \textit{Regression}: We use the coefficient of determination ($R^2$ score, which is a scaled version of the mean squared error) on accepted points as our utility function for regression:
-    \begin{equation}
+     \begin{equation}
         R^2= 1 - \frac{\sum_{i=1}^{M_\tau} (f(\bm{x}_i) - y_i)^2}{\sum_{i=1}^{M_\tau} (y_i - \frac{1}{M_\tau}\sum_{j=1}^{M_\tau} y_j)^2}
     \end{equation}
     \item \textit{Time Series Forecasting}: We use the Mean Scaled Interval Score (MSIS)~\cite{gneiting2007strictly} on accepted series as our utility function for time series forecasting
     \begin{equation}
     \fontsize{7.75pt}{7.75pt}
-    % \splitfrac{ ab - cd}{+ ef - gh }
     \text { MSIS }= \frac{1}{M_\tau R}\sum_{i=1}^{M_\tau} \frac{ \splitfrac{ \sum_{r=n+1}^{n+R}\left(u_{i,r}-l_{i,r}\right) +\frac{2}{\alpha}\left(l_{i,r}-y_{i,r}\right) \mathds{1}[y_{i,r}<l_{i,r}]}{ +\frac{2}{\alpha}\left(y_{i,r}-u_{i,r}\right)  \mathds{1}[y_{i,r}>u_{i,r}] } }{\frac{1}{n-m} \sum_{r=m+1}^n\left|y_{i,r}-y_{i,r-m}\right|}
-        % \text { MSIS }=\frac{1}{R} \frac{\sum_{r=n+1}^{n+h}\left(U_r-L_r\right)+\frac{2}{\alpha}\left(L_r-Y_r\right) \mathbf{1}\left\{Y_r<L_r\right\}+\frac{2}{\alpha}\left(Y_r-U_r\right) \mathbf{1}\left\{Y_r>U_r\right\}}{\frac{1}{n-m} \sum_{r=m+1}^n\left|Y_r-Y_{r-m}\right|}
     \end{equation}
     where $\alpha$ refers to a specific predictive quantile, $n$ to the conditioning length of the time series, $m$ to the length of the seasonal period, and $u_{i,r}$ and $l_{i,r}$ to the upper and lower bounds on the prediction range, respectively.
 \end{enumerate}
-% \begin{align}
-% \text{accuracy}(\bm{x},y) = \frac{|\{\bm{x} : f(\bm{x}) = y, g(\bm{x}) \leq \tau \}|}{|\{\bm{x} : g(\bm{x}) \leq \tau \}|}
-% \end{align}
 
 \subsection{Past \& Related Work} 
-
-% \anvith{can we say/is it true all these methods are just ways of bootstrapping softmax response, and what we propose is a different base score to work with. Hence may also benefit from bootstrapping techniques, as we show with deep ensembles}
-
-% \anvith{I think this whole discussion uses classifiers? Nothing on real valued outputs?}
 
 \paragraph{Softmax Response Baseline (Classification).} The first work on selective classification was the softmax response (\sr) mechanism~\citep{hendrycks2016baseline, geifman2017selective}. A classification model typically has a softmax output layer which takes in unnormalized activations in $z_{i} \in \mathbb{R}^C$ (referred to as logits) from a linear model or a deep neural net. These activations are mapped through the softmax function which normalizes all entries 
 \begin{equation}
@@ -158,25 +104,12 @@ to the interval $[0,1]$ and further ensures that $\sum_{i=1}^{C} \sigma(\bm{z})_
 The softmax response mechanism applies a threshold $\tau$ to the maximum response of the softmax layer: $\max_{y \in \mathcal{Y}}f(y|\bm{x})$. 
 Given a confidence parameter $\delta$ and desired risk $\hat{\mathcal{R}}(f)$, \sr constructs $(f, g)$ with test error no larger than $\hat{\mathcal{R}}(f)$ with probability $\geq 1-\delta$. 
 While this approach is simple to implement, it has been shown to produce over-confident results due to poor calibration of deep neural networks~\citep{guo2017calibration}.\footnote{Under miscalibration, a model's prediction frequency of events does not match the true frequency of events.} 
-%As illustrated in Section~\ref{sec:method_intuition}, our proposed method remedies this problem in the presence of training instability/data ambiguity.
 
 \paragraph{Loss Modifications (Mostly Classification).} 
-The first work to deliberately address selective classification via architecture modification was SelectiveNet~\citep{geifman2019selectivenet}, which trains a model to jointly optimize for classification and rejection. A loss penalty is added to enforce a particular coverage constraint using a variant of the interior point method~\cite{potra2000interior} which is often used for solving linear and non-linear convex optimization problems. To optimize selective accuracy over the full coverage spectrum in a single training run, Deep Gamblers~\citep{liu2019deep} transform the original $C$-class problem into a $(C + 1)$-class problem where the additional class represents model abstention. \shortened{A similar approach is given by Self-Adaptive Training (\sat)~\citep{huang2020self} which also uses a $(C+1)$-class setup but instead incorporates an exponential average of intermediate predictions into the loss function.} 
-%Our method removes the need for these explicit training time modifications. 
-% Recently, \citet{feng2023towards} showed that entropy regularization and the usage of the softmax response mechanism on top of a model with higher utility (\eg as yielded by \sat) leads to additional performance gains. 
-Other similar approaches include: performing statistical inference for the marginal prediction-set coverage rates using model ensembles~\citep{feng2021selective}, confidence prediction using an earlier snapshot of the model~\citep{geifman2018bias}, estimating the gap between classification regions corresponding to each class~\citep{gangrade2021selective}, and complete precision by classifying only when models consistent with the training data predict the same output~\citep{khani2016unanimous}. %\anvith{"Our method removes the need for these training time modifications to utilize the intermediate predictions; not only is our method hence more deployable, our method also performs better."} %We remark again that our method \anvith{can drop ", however," to be less passive} , however, we alleviate the need for training-time modifications while still leveraging intermediate predictions \anvith{"and moreover improving performance against these methods"}.
-
-% \anvith{@stephan should reiterate in one sentence why these methods are not as good as us, can be direct (i.e., to the point)} \stephan{it varies, I don't think we can go into that much detail here}
-%\david{not sure if this much background on all these methods is necessary, if you need something to cut/condense, condense this paragraph for sure; it's also visually very long}
-
-% \stephan{Add sentence that UQ works for both regression and classifcation}
+The first work to deliberately address selective classification via architecture modification was SelectiveNet~\citep{geifman2019selectivenet}, which trains a model to jointly optimize for classification and rejection. A loss penalty is added to enforce a particular coverage constraint using a variant of the interior point method~\cite{potra2000interior} which is often used for solving linear and non-linear convex optimization problems. To optimize selective accuracy over the full coverage spectrum in a single training run, Deep Gamblers~\citep{liu2019deep} transform the original $C$-class problem into a $(C + 1)$-class problem where the additional class represents model abstention. \shortened{A similar approach is given by Self-Adaptive Training (\sat)~\citep{huang2020self} which also uses a $(C+1)$-class setup but instead incorporates an exponential average of intermediate predictions into the loss function.} Other similar approaches include: performing statistical inference for the marginal prediction-set coverage rates using model ensembles~\citep{feng2021selective}, confidence prediction using an earlier snapshot of the model~\citep{geifman2018bias}, estimating the gap between classification regions corresponding to each class~\citep{gangrade2021selective}, and complete precision by classifying only when models consistent with the training data predict the same output~\citep{khani2016unanimous}. 
 
 \paragraph{Uncertainty Quantification (Classification + Regression).} 
-It was further shown by~\citep{balaji2017uncertainty, zaoui2020regression} that deep model ensembles (\ie a collection of multiple models trained with different hyper-parameters until convergence) can provide state-of-the-art uncertainty quantification, a task closely related to selective prediction. This however raises the need to train multiple models from scratch. %\anvith{"we show, in the simplest setting of our method, we can match the performance of deep ensembles using the same inference time cost but only $1/10$th the training time costs."} \stephan{I think this is too specific as 10 is a hyperparaneter. I added a comment re cost to the intro aleardy. people often skip the background so it should be in the intro if we want to emphaszie it} %\anvith{"Othe work has looked"} 
-\shortened{To reduce the cost of training multiple models, \citep{gal2016dropout} proposed abstention based on the variance statistics from several dropout \cite{srivastava2014dropout} enabled forward passes at test time.} %\anvith{"However, such past methods to reduce training costs degrade performance, while our method (in its simplest setting with only one training run) does not degrade performance."} \stephan{why would this degrade performance?}
-% \anvith{I think you can drop the following sentence based on suggestions above. The suggestions above should it make more direct what our improvements/contribution are. Right now it seems very passive} \stephan{commented out previous point so keeping what we have}
-% Recall that, in our work, we leverage intermediate models yielded during training and hence also avoid the costly training of separate models to obtain an ensemble. 
-Another popular technique for uncertainty quantification, especially for regression and time series forecasting, is given by directly modeling the output distribution~\citep{alexandrov2019gluonts} in a parametric fashion. Training with a parametric output distribution however can lead to additional training instability, often requiring extensive hyper-parameter tuning and distributional assumptions. On the other hand, our approach does not require any architecture or other training-time modifications. \newlyadded{Finally, we note that selective prediction and uncertainty are also strongly related to the field of automated model evaluation which relies on the construction a proximal prediction pipeline of the testing performance without the presence of ground-truth labels~\citep{peng2023came,peng2024energy}.}
+It was further shown by~\citep{balaji2017uncertainty, zaoui2020regression} that deep model ensembles (\ie a collection of multiple models trained with different hyper-parameters until convergence) can provide state-of-the-art uncertainty quantification, a task closely related to selective prediction. This however raises the need to train multiple models from scratch. \shortened{To reduce the cost of training multiple models, \citep{gal2016dropout} proposed abstention based on the variance statistics from several dropout \cite{srivastava2014dropout} enabled forward passes at test time.} Another popular technique for uncertainty quantification, especially for regression and time series forecasting, is given by directly modeling the output distribution~\citep{alexandrov2019gluonts} in a parametric fashion. Training with a parametric output distribution however can lead to additional training instability, often requiring extensive hyper-parameter tuning and distributional assumptions. On the other hand, our approach does not require any architecture or other training-time modifications. \newlyadded{Finally, we note that selective prediction and uncertainty are also strongly related to the field of automated model evaluation which relies on the construction a proximal prediction pipeline of the testing performance without the presence of ground-truth labels~\citep{peng2023came,peng2024energy}.}
 
 
 \paragraph{Training Dynamics Approaches (Classification).} Checkpoint and snapshot ensembles \citep{huang2017snapshot, chen2017checkpoint} constitute the first usage of training dynamics to boost model utility. Our work is closest in spirit to recent work on dataset cartography~\citep{swayamdipta2020dataset} which relies on using training dynamics from an example difficulty viewpoint by considering the variance of logits. However, their approach does not consider selective prediction and further requires access to true label information (which is not available in the selective prediction setting). Recent work on out-of-distribution detection~\citep{adila2022understanding}, a closely related yet distinct application scenario from selective prediction, harness similar training dynamics based signals.
@@ -195,14 +128,8 @@ Notably, this approach is more costly and less practical than our approach and a
 \paragraph{Disagreement.} Our \sptd method heavily relies on the presence of disagreements between intermediate models. Past work on (dis-)agreement has studied the connection between generalization and disagreement of full SGD runs \citep{jiang2021assessing} as well as correlations between in-distribution and out-of-distribution agreement across models \citep{baek2022agreement}.
 }
 
-%\stephan{Some works for regression and TS (mostly ensembles and direct parametric output)}
-
 \section{Selective Prediction via Neural Network Training Dynamics}
 \label{sec:method}
-
-% \anvith{this is the new new version of section 3, based on the rough sketch presented in the new version of section 3 below (which is not to be mistaken with the old version of section 3 not in the main body rn)}
-
-% As highlighted in Section~\ref{} \anvith{cite background}, past methods for selective prediction use softmax response as the score to threshold, and attempt to boostrap the performance of softmax response by changing the training pipeline. In this section we propose an alternative score: a weighted sum of the predicted label disagreements over the checkpoints obtained during training. We first illustrate how such a weighted sum generalizes softmax response in Section~\ref{} \anvith{example section}. We then provide the exact formalism we use to describe our class of methods~\ref{}, and the methods themselves~\ref{}. Later, in Section~\ref{} we demonstrate the superiority of our training dynamics based approach in practice.
 
 We now introduce our selective prediction algorithms based on neural network training dynamics. We start by presenting a motivating example showcasing the effectiveness of analyzing training trajectories for a linear classification problem. Following this, we formalize our selective prediction scoring rule based on training-time prediction disagreements. We refer to the class of methods we propose as \sptd.
 
@@ -212,50 +139,29 @@ We now introduce our selective prediction algorithms based on neural network tra
 \begin{figure*}
     \centering
     \includegraphics[width=0.97\linewidth]{figs/sptd/gaussians_anom2.pdf}
-    \caption[Synthetic example of anomaly scoring based on \sr vs \sptd.]{\textbf{Synthetic example of anomaly scoring based on \sr vs \sptd}. The first row shows a test set from the generative Gaussian model as well as the learned decision boundary separating the two Gaussians. For small $a$, the decision boundary is overconfident. The second row shows the same data set but instead depicts the scores yielded by applying \sptd to the full domain. \sptd highlights rightful rejection regions more clearly than the overconfident \sr score: larger regions are flagged as exhibiting noisy training dynamics (with stronger shades of green indicating stronger disagreement) as $a \rightarrow 0$. 
-    %(which is based on the final model' decision boundary) \david{I honestly cannot tell what anything in the 2nd row is actually demonstrating, there's no pattern I can meaningfully gleam}.
-    The bottom row shows the distribution of the \sr and \sptd scores, clearly showing that \sptd leads to improved uncertainty under stronger label ambiguity.}
+    \caption[Synthetic example of anomaly scoring based on \sr vs \sptd.]{\textbf{Synthetic example of anomaly scoring based on \sr vs \sptd}. The first row shows a test set from the generative Gaussian model as well as the learned decision boundary separating the two Gaussians. For small $a$, the decision boundary is overconfident. The second row shows the same data set but instead depicts the scores yielded by applying \sptd to the full domain. \sptd highlights rightful rejection regions more clearly than the overconfident \sr score: larger regions are flagged as exhibiting noisy training dynamics (with stronger shades of green indicating stronger disagreement) as $a \rightarrow 0$. The bottom row shows the distribution of the \sr and \sptd scores, clearly showing that \sptd leads to improved uncertainty under stronger label ambiguity.}
     \label{fig:gauss}
 \end{figure*}
 
 
-Stochastic iterative optimization procedures, such as Stochastic Gradient Descent (SGD), yield a sequence of models that is iteratively derived by minimizing a loss function $\ell(\cdot,\cdot)$ on a randomly selected mini-batch $(\bm{X}_i, \bm{y}_i)$ from the training set. The iterative update rule can be expressed as % . Traditional 
+Stochastic iterative optimization procedures, such as Stochastic Gradient Descent (SGD), yield a sequence of models that is iteratively derived by minimizing a loss function $\ell(\cdot,\cdot)$ on a randomly selected mini-batch $(\bm{X}_i, \bm{y}_i)$ from the training set. The iterative update rule can be expressed as
 \begin{equation}
     \bm{\theta}_{t+1} = \bm{\theta}_{t} - \nu \frac{\partial \ell(f(\bm{X}_i), \bm{y}_i)}{\partial \bm{\theta}_{t}},
 \end{equation}
 where the learning rate $\nu$ controls the speed of optimization and $t \in \{1,\ldots,T\}$ represents a particular time-step during the optimization process.
 
 \looseness=-1
-Current methods for selective prediction disregard the properties of this iterative process and only rely on the final set of parameters $\bm{\theta}_{T}$.  
-% This is particularly true for the softmax response (\sr) baseline~\citep{hendrycks2016baseline,geifman2017selective} which is known to produce overconfident predictions~\citep{guo2017calibration}.
-However, the optimization trajectories 
-% that are observable for individual data points 
-contain information that we can use to determine prediction reliability. In particular, on hard optimization tasks, the presence of stochasticity from SGD and the potential ambiguity of the data often leads to noisy optimization behavior. As a result, intermediate predictions produced over the course of training might widely disagree in what the right prediction would be for a given data point. %\anvith{, and this can be indicataive of underlying data ambiguity"}. \stephan{I think this is redundant, we literally metnion this in the previous sentence}
-% Simply picking the last model yielded by the optimization process (and trusting its predictions) is therefore sub-optimal if it is likely that a previous model would have produced a different decision. While we would expect disagreements early in training, we would expect predictions to stabilize well ahead of the final model for trustworthy predictions. 
-Our class of selective prediction approaches explicitly make use of these training dynamics by formalizing rejection scores based on the observed frequency of prediction disagreements with the final model throughout training.
+Current methods for selective prediction disregard the properties of this iterative process and only rely on the final set of parameters $\bm{\theta}_{T}$. However, the optimization trajectories contain information that we can use to determine prediction reliability. In particular, on hard optimization tasks, the presence of stochasticity from SGD and the potential ambiguity of the data often leads to noisy optimization behavior. As a result, intermediate predictions produced over the course of training might widely disagree in what the right prediction would be for a given data point. Our class of selective prediction approaches explicitly make use of these training dynamics by formalizing rejection scores based on the observed frequency of prediction disagreements with the final model throughout training.
 
-% \stephan{@Anvith: For our generalizes softmax response idea: that is only applicable to classification. although we could say that SC approaches rely on improving softmax response while in regression we bootstrap models and both methods could benefit from a time component, the problem is that I don't think overconfidence is a big problem for regression if you ensemble. Same would be true for the other selective classification methods which reduce overconfidence over SR. Maybe worth leaving this as is for now and maybe come back to it if we still have time at the end?}\anvith{yeah its fine for now}
+To illustrate and reinforce this intuition that training dynamics contain meaningfully more useful information for selective prediction than the final model, we present a synthetic logistic regression example. First, we generate a mixture of two Gaussians each consisting of $1000$ samples: $D = \{(\bm{x}_i,0)\}_{i=1}^{1000} \cup \{(\bm{x}_j,1)\}_{j=1}^{1000}$ where $\bm{x}_i \sim \mathcal{N}(\begin{bmatrix}a & 0\end{bmatrix}^\top,\ \bm{I})$ and $\bm{x}_j \sim \mathcal{N}(\begin{bmatrix}-a & 0\end{bmatrix}^\top,\ \bm{I})$. Note that $a$ controls the distance between the two $2$-dimensional Gaussian clusters, allowing us to specify the difficulty of the learning task. Then, we train a linear classification model using SGD for $1000$ epochs for each $a \in \{0,0.5,1,5\}$. Finally, we compute both the softmax response score (\sr) score, the typical baseline for selective classification, as well as our \sptd score (details in Section~\ref{sec:method_overview}).
 
-%\anvith{Maybe second half of above paragraph could be more concrete?}
-
-% To first give intuition for how our score based on training dynamics generalizes softmax response, we present a comparison of our score (which is a weighted sum of the intermediate predicted label disagreements with respect to the final predicted label) to softmax response for logistic regression. The intuition is that our score still captures unconfident points as they are close to the decision boundary and hence have their predicted label flip during training: these are the points softmax response captures. However, our score additionally captures points that are highly confident but are unstable in their predicted label during training (e.g., data with ambiguous labels); these are points not captured by the softmax response.
-
-To illustrate and reinforce this intuition that training dynamics contain meaningfully more useful information for selective prediction than the final model, we present a synthetic logistic regression example. First, we generate a mixture of two Gaussians each consisting of $1000$ samples: $D = \{(\bm{x}_i,0)\}_{i=1}^{1000} \cup \{(\bm{x}_j,1)\}_{j=1}^{1000}$ where $\bm{x}_i \sim \mathcal{N}(\begin{bmatrix}a & 0\end{bmatrix}^\top,\ \bm{I})$ and $\bm{x}_j \sim \mathcal{N}(\begin{bmatrix}-a & 0\end{bmatrix}^\top,\ \bm{I})$. 
-% $D = \{(\bm{x}_i,0)\}_{i=1}^{1000} \cup \{(\bm{x}_j,1)\}_{j=1}^{1000}$ where $\bm{x}_i \sim \mathcal{N}(\begin{bmatrix}a & 0\end{bmatrix}^\top,\ \bm{I})$ and $\bm{x}_j \sim \mathcal{N}(\begin{bmatrix}-a & 0\end{bmatrix}^\top,\ \bm{I})$ 
-Note that $a$ controls the distance between the two $2$-dimensional Gaussian clusters, allowing us to specify the difficulty of the learning task. Then, we train a linear classification model using SGD for $1000$ epochs for each $a \in \{0,0.5,1,5\}$. Finally, we compute both the softmax response score (\sr) score, the typical baseline for selective classification, as well as our \sptd score (details in Section~\ref{sec:method_overview}).
-%which measures prediction instability throughout the training stage.%\todo{you haven't introduced it yet right? if so add a forward pointer}
-
-We showcase the results from this experiment in Figure~\ref{fig:gauss}. We  see that if the data is linearly separable ($a=5$) the learned decision boundary is optimal and the classifier's built-in confidence score \sr reflects well-calibrated uncertainty. Moreover, the optimization process is stable as \sptd yields low scores over the full domain. However, as we move the two Gaussians closer together (\ie by reducing $a$) we see that the \sr baseline increasingly suffers from overconfidence: large parts of the domain are very confidently classified as either $0$ (red) or $1$ (blue) with only a small ambiguous region (white). However, the optimization trajectory is highly unstable with the decision boundary changing abruptly between successive optimization steps. \sptd identifies the region of datapoints exhibiting large prediction disagreement due to this training instability and correctly rejects them (as those are regions also subject to label ambiguity in this case). In summary, we observe that \sptd provides improved uncertainty quantification in ambiguous classification regions (which induce training instability) and reduces to the \sr solution as the classification task becomes easier. Hence, we expect \sptd to generalize \sr performance, which is supported by this logistic regression experiment. %\david{perhaps more important than whether or not SPTD demonstrates increased uncertainty is that it demonstrates increased uncertainty on the points it should be uncertain about, it almost certainly does but briefly stating this would help}
-% \anvith{feel like the following should be somewhere, not sure exactly where yet. Maybe some form of this can be put in the intro}
-% \stephan{I feel like we are not really saying much more than what we already say in previous paragraph. Maybe we should just incorporate the key points from this into the previous paragraph?}
-% To rephrase this result for selective classification in particular, note that \sr (the score upon which the past SOTA selective classification methods improve with additional training time modifications) rejects unconfident points. Similarly \sptd is expected to reject unconfident points as they are near the decision boundary and hence should have unstable predictions across training. However, \sr does not reject overconfident points whose predictions never converged across the checkpoints: these are points we still expect to be uncertain as they are still subject to training noise. On the other hand, \sptd would reject these points. Hence, we expect \sptd to generalize \sr performance, which is supported by this logistic regression experiment.
+We showcase the results from this experiment in Figure~\ref{fig:gauss}. We  see that if the data is linearly separable ($a=5$) the learned decision boundary is optimal and the classifier's built-in confidence score \sr reflects well-calibrated uncertainty. Moreover, the optimization process is stable as \sptd yields low scores over the full domain. However, as we move the two Gaussians closer together (\ie by reducing $a$) we see that the \sr baseline increasingly suffers from overconfidence: large parts of the domain are very confidently classified as either $0$ (red) or $1$ (blue) with only a small ambiguous region (white). However, the optimization trajectory is highly unstable with the decision boundary changing abruptly between successive optimization steps. \sptd identifies the region of datapoints exhibiting large prediction disagreement due to this training instability and correctly rejects them (as those are regions also subject to label ambiguity in this case). In summary, we observe that \sptd provides improved uncertainty quantification in ambiguous classification regions (which induce training instability) and reduces to the \sr solution as the classification task becomes easier. Hence, we expect \sptd to generalize \sr performance, which is supported by this logistic regression experiment.
 
 \subsection{Method Overview: Measuring Prediction Instability During Training}
 \label{sec:method_overview}
 
 \begin{figure*}
 \begingroup
-% \removelatexerror
     \begin{minipage}{0.48\textwidth}
 
     \begin{algorithm}[H]
@@ -264,7 +170,7 @@ We showcase the results from this experiment in Figure~\ref{fig:gauss}. We  see 
     	\Require Intermediate models $[f_1,\ldots,f_T]$, query point $\bm{x}$, weighting parameter $k \in [0,\infty)$.
         \For{$t \in [T]$}
             \State \algemph{\algorithmicif\ $f_t(\bm{x}) = f_T(\bm{x})$ \algorithmicthen\ $a_t \gets 0$ \algorithmicelse\ $a_t \gets 1$}
-            \State $v_t \gets (\frac{t}{T})^k$
+            \State $\ v_t \gets (\frac{t}{T})^k$
         \EndFor
     \State $g \gets \sum_{t} v_t a_t$
     \State \algorithmicif\ $g \leq \tau$ \algorithmicthen\ \fixed{$f(\bm{x}) = f_T(\bm{x})$} \algorithmicelse\ $f(\bm{x}) = \bot$
@@ -281,11 +187,9 @@ We showcase the results from this experiment in Figure~\ref{fig:gauss}. We  see 
     	\Require Intermediate models $[f_1,\ldots,f_T]$, query point $\bm{x}$, weighting parameter $k \in [0,\infty)$. 
         \For{$t \in [T]$}
             \State \algemph{$a_t \gets ||f_t (\bm{x}) - f_T (\bm{x})||$}
-            \State $v_t \gets (\frac{t}{T})^k$
+            \State $\ v_t \gets (\frac{t}{T})^k$
         \EndFor
-    % \STATE $s_\text{WVR} \gets \frac{\sum_{t=1}^{T} v_t\; \sum_{t=1}^{T} v_t (a_t - \frac{\sum_{t=1}^{T} v_t a_t}{\sum_{t=1}^{T} v_t})^2}{ (\sum_{t=1}^{T} v_t)^2 - \sum_{t=1}^{T} v_t^2}$
     \State $g \gets \sum_{t} v_t a_t$
-    % \STATE $s_\text{WVR} \gets \sum_{t} v_t (a_t - \mu)^2$
     \State \algorithmicif\ $g \leq \tau$ \algorithmicthen\ \fixed{$f(\bm{x}) = f_T(\bm{x})$} \algorithmicelse\ $f(\bm{x}) = \bot$
     	\end{algorithmic}
     \end{algorithm}
@@ -296,48 +200,17 @@ We showcase the results from this experiment in Figure~\ref{fig:gauss}. We  see 
 \endgroup
 \end{figure*}
 
-%\anvith{can probably merge this subsection with below }
-% We proceed to describe the statistics we collect from intermediate checkpoints that we later devise our score based on. Let $[f_1,f_2,\ldots, f_T]$ be a sequence of intermediate checkpoints, and $\mathcal{D} = D_\text{train} \cup D_\text{test}$ be the set of all data points. For a given $\bm{x} \in \mathcal{D}$, define the label disagreement score $a_t = 1- \delta_{f_t(\bm{x}),f_T(\bm{x})}$ where $\delta$ is dirac-delta function: $a_t$ is hence $1$ if the intermediate prediction at checkpoint $t$ disagrees with the final prediction for $\bm{x}$, else $0$. For a given $\bm{x}$, we will use the sequence $[a_1, a_2,\ldots, a_T]$ as our sequence of statistics.
+We proceed to describe the statistics we collect from intermediate checkpoints which we later devise our scores for deciding which inputs to reject on. The objective of these statistics is to capture how unstable the prediction for a datapoint was over the training checkpoints. Let $[f_1,f_2,\ldots, f_T]$ be a sequence of intermediate checkpoints, and $\mathcal{D} = D_\text{train} \cup D_\text{test}$ be the set of all data points. We define a prediction disagreement score at time $t \in \{1,\ldots,T\}$ as some function $a_t: \mathcal{X} \rightarrow \mathbb{R}^+$ with $a_t(\bm{x}) = 0$ if $f_t(\bm{x}) = f_T(\bm{x})$. Note that the exact $a_t(\cdot)$ we use depends on the problem domain (classification vs regression) and we define our choices below. In the following, when conditioning on $\bm{x}$ is understood from context, we drop the explicit dependence on $\bm{x}$ and write $a_t$.
 
-%\anvith{reworded this paragraph slightly. Let's stick to prediction disagreement}
-
-We proceed to describe the statistics we collect from intermediate checkpoints which we later devise our scores for deciding which inputs to reject on. The objective of these statistics is to capture how unstable the prediction for a datapoint was over the training checkpoints. Let $[f_1,f_2,\ldots, f_T]$ be a sequence of intermediate checkpoints, and $\mathcal{D} = D_\text{train} \cup D_\text{test}$ be the set of all data points. We define a prediction disagreement score at time $t \in \{1,\ldots,T\}$ as some %\anvith{@stephan for now left as function, will change to specify it as a metric over the predictions} 
-function $a_t: \mathcal{X} \rightarrow \mathbb{R}^+$  % $a_t(\bm{x}) \in \mathbb{R}^+$ for $\bm{x} \in \mathcal{D}$ for $\bm{x} \in \mathcal{D}$ such that 
-with $a_t(\bm{x}) = 0$ if $f_t(\bm{x}) = f_T(\bm{x})$. %When $\bm{x}$ is understood from context we drop its explicit dependence and write $a_t$.
-Note that the exact $a_t(\cdot)$ we use depends on the problem domain (classification vs regression) and we define our choices below. In the following, when conditioning on $\bm{x}$ is understood from context, we drop the explicit dependence on $\bm{x}$ and write $a_t$.
-
-
-
-
-
-%Note that for conciseness we drop the explicit dependence on $\bm{x}$ by writing $a_t$ instead of $a_t(\bm{x})$. A score of $a_t = 0$ indicates perfect agreement with the final model's prediction while increasingly large values of $a_t$ indicate stronger disagreement with the final model's prediction. We use the sequence $[a_1, a_2,\ldots, a_T]$ for characterizing the disagreement evolution over the course of training. Note that we assume that the model sequence $[f_1,f_2,\ldots, f_T]$ is recorded %\anvith{idk if persisted is the right word} 
-%during training and can be retrieved at test time. This allows us to compute training dynamics statistics for both training and test points.
-
-% The goal of our method is to compare how representative a given sequence of statistics is for training points of a model that converged on the training set (easily). In practice, we will empirically measure some easy-to-learn settings, and obtain a random variable $p_t$ which is $a_t(\bm{x})$ for $\bm{x} \sim D_\text{train}$ where $D_\text{train}$ is the training set for the performative model. In particular, let $v_t = \mathbb{V}_{\bm{x} \sim D}[p_{t}]$ and $e_t = \mathbb{E}_{\bm{x} \sim D}[p_{t}]$ denote the variances and expectations of the label disagreements over the training points. 
-
-% \stephan{Anvith: try to make this following paragraph more formal by maybe bringing back some of the stuff I commented out. If it doesn't work in a general setting (we cannot assume boundedness for regression I think which is something we used for classification), the we could put the formalism into classification and then highlight intuitive generalization to regression}
-% \anvith{yeah rewrote}
-
-For a fixed data point $\bm{x}$, our approach takes a given sequence of prediction disagreements $[a_1,\ldots,a_T]$ and associates a weight $v_t$ to each disagreement $a_t$ to capture how severe a disagreement at step $t$ is. To derive this weighting we ask: How indicative of $\bm{x}$ being incorrectly classified is a disagreement at step $t$? Related work in the example difficulty literature (see Section~\ref{sec:example_diff} for details) found that easy-to-optimize samples are learned early in training and converge faster. While prior work specifically derived these convergence insights for training points only, the novelty of our method is to show such conclusions for training points also generalize to test points. Hence, we propose to use the weighting $v_t = (\frac{t}{T})^k$ for $k \in [0,\infty)$ to penalize late prediction disagreements as more indicative of a test point we will not predict correctly on. With this weighting, our methods compute a weighted sum of the prediction disagreements, which effectively forms our selection function $g(\cdot)$: %, the exact form of which will depend on the domain. % We remark that future work may propose alternative weighting schemes and/or alternative analyses of prediction disagreements to obtain different scores correlated with correctness.
+For a fixed data point $\bm{x}$, our approach takes a given sequence of prediction disagreements $[a_1,\ldots,a_T]$ and associates a weight $v_t$ to each disagreement $a_t$ to capture how severe a disagreement at step $t$ is. To derive this weighting we ask: How indicative of $\bm{x}$ being incorrectly classified is a disagreement at step $t$? Related work in the example difficulty literature (see Section~\ref{sec:example_diff} for details) found that easy-to-optimize samples are learned early in training and converge faster. While prior work specifically derived these convergence insights for training points only, the novelty of our method is to show such conclusions for training points also generalize to test points. Hence, we propose to use the weighting $v_t = (\frac{t}{T})^k$ for $k \in [0,\infty)$ to penalize late prediction disagreements as more indicative of a test point we will not predict correctly on. With this weighting, our methods compute a weighted sum of the prediction disagreements, which effectively forms our selection function $g(\cdot)$: 
 \begin{equation}
     \label{eq:score}
     g(\bm{x}) = \sum_{t} v_t a_t(\bm{x})    
 \end{equation}
 
-% \anvith{I think the following is repetitive with the previous paragraph? Can probably drop} This instability score $g(\cdot)$ places higher weight on late disagreements as $v_t$ increases in a convex manner. This is intuitive as we expect disagreement towards the end of training to be more indicative of uncertainty in the final model's prediction. 
-
-%Given $[a_1, a_2,\ldots, a_T]$, we now discuss how strongly our selective prediction scores should weight instability for each $t$. Our hypothesis, which we validate subsequently in Section~\ref{sec:emp_eval}, is that samples $\bm{x}$ with large instability over the course of training, but in particular towards the end of training, are often incorrectly classified by the final model. Hence, our work directly connects to recent work from the example difficulty literature~\citep{jiang2020characterizing,toneva2018empirical,hooker2019compressed,agarwal2020estimating} which finds that easy-to-optimize samples are learned early in training (and converge faster). Conversely, hard-to-learn data points only converge late in training. Based on this insight, we introduce a weighting $v_t$ associated with each $a_t$ which quantifies how severe a disagreement is at time $t$: early instability at the beginning of the optimization process is unremarkable while instability close to the end of training could indicate an incorrect prediction. To achieve this weighting, we choose $v_t = (\frac{t}{T})^k$ for $k \in [1,\infty)$ which allows us to (de-)emphasize instability late (early) in training due to its convexity\footnote{Particular choices of $k$ allow us to specify how strongly we want to penalize instability late in training. We later find that choices of $k \in [2,5]$ often provide the best results.}. Finally, our scores for selective prediction compute weighted instability for which the exact specifics differ between classification and regression as we discuss below.
-
 \paragraph{Instability for Classification.} For discrete prediction problems (\ie classification) we define the label disagreement score as $a_t = 1- \delta_{f_t(\bm{x}),f_T(\bm{x})}$ where $\delta$ is the Dirac-delta function: $a_t$ is hence $1$ if the intermediate prediction $f_t$ at checkpoint $t$ disagrees with the final prediction $f_T$ for $\bm{x}$, else $0$. The resulting algorithm using this definition of $a_t$ for classification is given in Algorithm~\ref{alg:sptd_class}. We remark that continuous metrics such as the maximum softmax score, the predictive entropy (\ie the entropy of the predictive distribution $f(y|\bm{x})$), or the gap between the two most confident classes could be used as alternate measures for monitoring stability (see Appendix~\ref{sec:alt_scores} for a discussion). However, these measures only provide a noisy proxy and observing a discrete deviation in the predicted class provides the most direct signal for potential mis-classification.
 
-% \david{why this instead of doing what you did for regression with the softmax probabilities or (l2 normalized) logits? You can then unify your method as just working on model outputs. Under this approach you could probably also alternatively cast this as simply measuring the joint entropy (thereby combining the entropy of individual predictions and entropy across predictions, although assumptions of independence across model checkpoints is iffy...). If this didn't work, perhaps state this, if you didn't check this then don't worry about it.}
-% Since $v_t$ increases for larger $t$ and we want to identify points with instability late in training, we propose the following weighted sum score: $s_\text{SUM} = \sum_{t} v_t a_t$. \ssum places higher weight on late disagreements, which is intuitive as we expect disagreement towards the end of training to be more indicative of uncertainty in the final model's prediction. The full algorithm using \ssum, which we denote by \sptd(\ssum), is given in Algorithm~\ref{alg:sptd_ssum}.
-
-\paragraph{Instability for Regression.} One key advantage of our method over many previous ones is that it is applicable to \emph{any} predictive model, including regression. %As such, it also lends itself to applications in which we want to predict a real-valued quantity. 
-Here, we propose the following prediction disagreement score measuring the distance of intermediate predictions to the final model's prediction: $a_t = ||f_t (\bm{x}) - f_T (\bm{x})||$.\footnote{We explored a more robust normalization by averaging predictions computed over the last $l$ checkpoints: $a_t = ||f_t (\bm{x}) - \frac{1}{n}\sum_{c \in \{T-l, T-l+1, \ldots, T \}} f_c (\bm{x})||$. Across many $l$, we found the obtained results to be statistically indistinguishable from the results obtained by normalizing w.r.t. the last checkpoint $f_T$.} 
-%\anvith{next sentence is unecessary, can drop and keep the footnote(is an artifact of how this flowed before, but this is now obvious from the first para in 3.2)} 
-%Hence, all instability sequences converge to $0$ which allows us to isolate convergence patterns independent of the exact value of the final prediction. 
-The resulting algorithm using this definition of $a_t$ for regression is given in Algorithm~\ref{alg:sptd_regr}. We again highlight the fact that Algorithm~\ref{alg:sptd_regr} only differs from Algorithm~\ref{alg:sptd_class} in the computation of the prediction disagreement $a_t$ (line 2 highlighted in both algorithms).
+\paragraph{Instability for Regression.} One key advantage of our method over many previous ones is that it is applicable to \emph{any} predictive model, including regression. Here, we propose the following prediction disagreement score measuring the distance of intermediate predictions to the final model's prediction: $a_t = ||f_t (\bm{x}) - f_T (\bm{x})||$.\footnote{We explored a more robust normalization by averaging predictions computed over the last $l$ checkpoints: $a_t = ||f_t (\bm{x}) - \frac{1}{n}\sum_{c \in \{T-l, T-l+1, \ldots, T \}} f_c (\bm{x})||$. Across many $l$, we found the obtained results to be statistically indistinguishable from the results obtained by normalizing w.r.t. the last checkpoint $f_T$.} The resulting algorithm using this definition of $a_t$ for regression is given in Algorithm~\ref{alg:sptd_regr}. We again highlight the fact that Algorithm~\ref{alg:sptd_regr} only differs from Algorithm~\ref{alg:sptd_class} in the computation of the prediction disagreement $a_t$ (line 2 highlighted in both algorithms).
 
 \begin{algorithm}[t]
     \caption{\sptd for time series forecasting}\label{alg:sptd_ts}
@@ -349,16 +222,12 @@ The resulting algorithm using this definition of $a_t$ for regression is given i
         \EndFor
         \State $v_t \gets (\frac{t}{T})^k$
     \EndFor
-% \STATE $s_\text{WVR} \gets \frac{\sum_{t=1}^{T} v_t\; \sum_{t=1}^{T} v_t (a_t - \frac{\sum_{t=1}^{T} v_t a_t}{\sum_{t=1}^{T} v_t})^2}{ (\sum_{t=1}^{T} v_t)^2 - \sum_{t=1}^{T} v_t^2}$
 \State $g \gets \sum_r\sum_{t} v_t a_{t,r}$
-% \STATE $s_\text{WVR} \gets \sum_{t} v_t (a_t - \mu)^2$
 \State \algorithmicif\ $g \leq \tau$ \algorithmicthen\ $f(\bm{x}) = L$ \algorithmicelse\ $f(\bm{x}) = \bot$
     \end{algorithmic}
 \end{algorithm}
 
 \paragraph{Instability for Time Series Prediction.} We can further generalize the instability sequence used for regression to time series prediction problems by computing the regression score for all time points on the prediction horizon. In particular, we compute $a_{t,r} = ||f_{t}(\bm{x})_r - f_{T}(\bm{x})_r||$ for all $r \in \{1,\ldots,R\}$. Recall that for time series problems $f_{t}(\bm{x})$ returns a vector of predictions $y \in \mathbb{R}^R$ and we use the subscript $r$ on $f_{t}(\bm{x})_r$ to denote the vector indexing operation. Our selection function is then given by computing Equation~\ref{eq:score} for each $r$ and summing up the instabilities over the prediction horizon: $g(\bm{x}) = \sum_r\sum_{t} v_t a_{t,r}(\bm{x})$. The full algorithm therefore shares many conceptual similarities with Algorithm~\ref{alg:sptd_regr} and we provide the detailed algorithm as part of Algorithm~\ref{alg:sptd_ts}. Note that the presented generalization for time series is applicable to any setting in which the variability of predictions can be computed. As such, this formalism can extend to application scenarios beyond time series prediction such as object detection or segmentation.
-
-% We conclude our methods section by remarking that our scores can be motivated from multiple different perspectives. In particular, we provide a formal treatment on the connection between selective prediction and forging~\citep{thudi2022necessity} in Appendix~\ref{sec:forging} leading to the same selection function $g(\cdot)$ as above.
 
 \subsection{Selective Prediction and Forging}
 \label{sec:forging}
@@ -369,8 +238,7 @@ This subsection was written with Anvith Thudi. Both Stephan and Anvith jointly d
 
 While our \sptd method is primarily motivated from the example difficulty view point, we remark that the scores \sptd computes to decide which points to reject can be derived from multiple different perspectives. To showcase this, we provide a formal treatment on the connection between selective classification and forging~\citep{thudi2022necessity}, which ultimately leads to the same selection function $g(\cdot)$ as above.
 
-Previous work has shown that running SGD on different datasets could lead to the same final model~\citep{hardt2016train,bassily2020stability,thudi2022necessity}. For example, this is intuitive when two datasets were sampled from the same distribution. We would then expect that training on either dataset should not significantly affect the model returned by SGD. For our selective prediction problem, this suggests an approach to decide which points the model is likely to predict correctly on: identify the datasets that it could have been trained on (in lieu of the training set it was actually trained on). Any point from the datasets the model could have trained on would then be likely to be predicted on correctly by the model. %In other words, give a method to check whether a given datapoint/dataset could have been used to train the model.
-Recent work on forging \cite{thudi2022necessity} solves this problem of identifying datasets the model could have trained on by brute-force searching through different mini-batches to determine if a mini-batch in the alternative dataset can be used to reproduce one of the original training steps. Even then, this is only a sufficient condition to show a datapoint could have plausibly been used to train: if the brute-force fails, it does not mean the datapoint could not have been used to obtain the final model. As an alternative, we propose to instead characterize the optimization behaviour of training on a dataset as a probabilistic necessary condition, i.e, a condition most datapoints that were (plausibly) trained on would satisfy based on training dynamics. Our modified hypothesis is then that the set of datapoints we optimized for (which contains the forgeable points) coincides significantly with the set of points the model predicts correctly on.
+Previous work has shown that running SGD on different datasets could lead to the same final model~\citep{hardt2016train,bassily2020stability,thudi2022necessity}. For example, this is intuitive when two datasets were sampled from the same distribution. We would then expect that training on either dataset should not significantly affect the model returned by SGD. For our selective prediction problem, this suggests an approach to decide which points the model is likely to predict correctly on: identify the datasets that it could have been trained on (in lieu of the training set it was actually trained on). Any point from the datasets the model could have trained on would then be likely to be predicted on correctly by the model. Recent work on forging \cite{thudi2022necessity} solves this problem of identifying datasets the model could have trained on by brute-force searching through different mini-batches to determine if a mini-batch in the alternative dataset can be used to reproduce one of the original training steps. Even then, this is only a sufficient condition to show a datapoint could have plausibly been used to train: if the brute-force fails, it does not mean the datapoint could not have been used to obtain the final model. As an alternative, we propose to instead characterize the optimization behaviour of training on a dataset as a probabilistic necessary condition, i.e, a condition most datapoints that were (plausibly) trained on would satisfy based on training dynamics. Our modified hypothesis is then that the set of datapoints we optimized for (which contains the forgeable points) coincides significantly with the set of points the model predicts correctly on.
 
 
 \subsubsection{A Framework for Being Optimized}
@@ -397,24 +265,12 @@ We do not guarantee Lemma~\ref{lem:prob_accept} is tight. Though we do take a mi
 \looseness=-1
 To answer this question, we propose to examine how the predictions on plausible training points evolve during training. Informally, the evolution of $\mathbb{E}[p_{t}]$ represents knowing how often we predict the final label at step $t$, while the evolution of $\mathbb{V}[p_{t}]$ represents knowing how we become more consistent as we continue training. Do note that the performance of this optimization-based approach to selective classification will depend on how unoptimized incorrect test points are. In particular, our hypothesis is that incorrect points often appear sufficiently un-optimized, yielding distinguishable patterns for $\mathbb{E}[p_{t}]$ and $\mathbb{V}[p_{t}]$ when compared to optimized points. We verify this behavior in Section~\ref{sec:emp_eval} where we discuss the distinctive label evolution patterns of explicitly optimized, correct, and incorrect datapoints.
 
-%The rest of this subsection will focus on the two methods we propose to characterize this optimization behaviour, giving rise to our selective classification methods. Although we do not give formal correctness guarantees for our methods for selective classification, %or being a (with high probability) necessary condition to be a datapoint we explicitly optimized for, 
-%their design and assumptions are informed by Lemma~\ref{lem:prob_accept} and by empirical estimates of $e_t$ and $v_t$ (later described in \S~\ref{ssec:ver_ei_vi}). 
-
 \subsubsection{Last Disagreement Model Score For Discrete Prediction (\smax)}
 \label{ssec:min_score}
 
-Here, we propose a selective classification approach based on characterizing optimizing for a datapoint based off of Lemma~\ref{lem:prob_accept}. 
-%In what follows we will, after two simplifying assumptions, derive a candidate selective classification algorithm based off of Lemma~\ref{lem:prob_accept}. 
-%\anvith{following paragraph needs to be made a lot clearer/cleaner. I commented out the old paragraph and left my edited version}
-Recall the bound given in Lemma~\ref{lem:prob_accept} depends on expected values and variances for the $p_t$ (denoted $e_t$ and $v_t$ respectively). In Section~\ref{sec:emp_eval} we observe that $e_t$ quickly converge to $0$, and so by assuming $e_t = 0$ always\footnote{We tried removing this assumption and observed similar performance.} %we have 
-the frequentist bound on how likely a datapoint is a training point %given by Lemma~\ref{lem:prob_accept} 
-becomes $\min_{t~s.t~a_t = 1} \frac{v_t}{|a_t - e_t|^2}= \min_{t~s.t~a_t = 1}v_t$. Using this result for selective classification, we would impose acceptance if $\min_{t~s.t~a_t = 1}v_t \geq \tau$. Moreover, in Section~\ref{sec:emp_eval}, we further observe that $v_t$ monotonically decreases in a convex manner (after an initial burn-in phase). Hence, imposing $\min_{t~s.t~a_t = 1}v_t \geq \tau$ simply imposes a last checkpoint that can have a disagreement with the final prediction.
+Here, we propose a selective classification approach based on characterizing optimizing for a datapoint based off of Lemma~\ref{lem:prob_accept}. Recall the bound given in Lemma~\ref{lem:prob_accept} depends on expected values and variances for the $p_t$ (denoted $e_t$ and $v_t$ respectively). In Section~\ref{sec:emp_eval} we observe that $e_t$ quickly converge to $0$, and so by assuming $e_t = 0$ always\footnote{We tried removing this assumption and observed similar performance.} the frequentist bound on how likely a datapoint is a training point becomes $\min_{t~s.t~a_t = 1} \frac{v_t}{|a_t - e_t|^2}= \min_{t~s.t~a_t = 1}v_t$. Using this result for selective classification, we would impose acceptance if $\min_{t~s.t~a_t = 1}v_t \geq \tau$. Moreover, in Section~\ref{sec:emp_eval}, we further observe that $v_t$ monotonically decreases in a convex manner (after an initial burn-in phase). Hence, imposing $\min_{t~s.t~a_t = 1}v_t \geq \tau$ simply imposes a last checkpoint that can have a disagreement with the final prediction.
 
-%With this reduction from Lemma~\ref{lem:prob_accept} to imposing a constraint on the last checkpoint that can disagree with the final prediction, 
-Based on these insights, we propose the following selective classification score: %which does that:
-%this score will follow the typical approach to SC of giving high scores to points to reject. 
-%We define 
-$s_{\max} = \max_{t~s.t~a_t = 1} \frac{1}{v_t}$. Note that this score directly follows from the previous discussion but flips the thresholding direction from $\min_{t~s.t~a_t = 1}v_t \geq \tau$ to $\max_{t~s.t~a_t = 1} \frac{1}{v_t} \leq \tau$ for consistency with the anomaly scoring literature~\citep{ruff2018deep}. Finally, we choose to approximate the empirical trend of $v_t$ as observed in Section~\ref{sec:emp_eval} with $v_t = 1 - t^k$ for $k \in [1,\infty)$. Based on the choice of $k$, this approximation allows us to (i) avoid explicit estimation of $v_t$ from validation data; and (ii) enables us to flexibly specify how strongly we penalize model disagreements late in training.
+Based on these insights, we propose the following selective classification score: $s_{\max} = \max_{t~s.t~a_t = 1} \frac{1}{v_t}$. Note that this score directly follows from the previous discussion but flips the thresholding direction from $\min_{t~s.t~a_t = 1}v_t \geq \tau$ to $\max_{t~s.t~a_t = 1} \frac{1}{v_t} \leq \tau$ for consistency with the anomaly scoring literature~\citep{ruff2018deep}. Finally, we choose to approximate the empirical trend of $v_t$ as observed in Section~\ref{sec:emp_eval} with $v_t = 1 - t^k$ for $k \in [1,\infty)$. Based on the choice of $k$, this approximation allows us to (i) avoid explicit estimation of $v_t$ from validation data; and (ii) enables us to flexibly specify how strongly we penalize model disagreements late in training.
 
 Hence, our first algorithm for selective classification is:
 \begin{enumerate}
@@ -427,25 +283,7 @@ Note once again, as all our candidate $\frac{1}{v_t}$ increase, the algorithm im
 \subsubsection{Overall Disagreement Model Score (\ssum)}
 \label{ssec:avg_score}
 
-Note that the previous characterization of optimization, defined by the score \smax, could be sensitive to stochasticity in training and hence perform sub-optimally. %\anvith{I'd drop the following sentence and go straight to the last sentence} 
-%In particular, this algorithm could be noisy for different training runs (of otherwise identical models) as $\max_{t~s.t~a_t= 1} \frac{1}{v_t}$ could vary drastically based on the exact sequence of mini-batches used during training. 
-That is, the exact time of the last disagreement, which \smax relies on, is subject to high noise across randomized training runs. %, yet this is what thresholding on \smax checks.
-In light of this potential limitation we propose the following "summation" algorithm which computes a weighted sum over training-time disagreements to get a more consistent statistic. Do note that typically to get a lower-variance statistic one would take an average, but multiplying by scalars can be replaced by correspondingly scaling the threshold we use. Hence, our proposed algorithm is:%one can equivalently just focus on a sum score. 
-
-%\begin{algorithm}[t]
-%	\caption{\sptd}\label{alg:sctd}
-%	\begin{algorithmic}[1]
-%	\REQUIRE Checkpointed model sequence $\{f_1,\ldots,f_T\}$, query point $\bm{x}$, weighting $k \in [0,\infty)$.
-%    \STATE Compute prediction of last model: $L \gets f_T(\bm{x})$
-%    \STATE Compute disagreement and weighting of intermediate predictions: 
-%    \FOR{$t \in [T]$}
-%        \STATE \algorithmicif\ $f_t(\bm{x}) = L$ \algorithmicthen\ $a_t \gets 0$ \algorithmicelse\ $a_t \gets 1$
-%        \STATE $v_t \gets 1 - (\frac{t}{T})^k$
-%    \ENDFOR
-%\STATE Compute sum score: $s_\text{sum} \gets \sum_{t} \frac{a_t}{v_t}$
-%    \STATE \algorithmicif\ $s_\text{sum} \leq \tau$ \algorithmicthen\ accept $f(\bm{x}) = L$ \algorithmicelse\ reject with $f(\bm{x}) = \bot$
-%	\end{algorithmic}
-%\end{algorithm}
+Note that the previous characterization of optimization, defined by the score \smax, could be sensitive to stochasticity in training and hence perform sub-optimally. That is, the exact time of the last disagreement, which \smax relies on, is subject to high noise across randomized training runs. In light of this potential limitation we propose the following "summation" algorithm which computes a weighted sum over training-time disagreements to get a more consistent statistic. Do note that typically to get a lower-variance statistic one would take an average, but multiplying by scalars can be replaced by correspondingly scaling the threshold we use. Hence, our proposed algorithm is:
 
 \begin{enumerate}
      \item Denote $L = f_T(\bm{x})$, i.e. the label our final model predicts.
@@ -455,50 +293,112 @@ In light of this potential limitation we propose the following "summation" algor
 
 Recalling our previous candidates for $v_t$, we have the \ssum places higher weight on late disagreements. This gives us a biased average of the disagreements which intuitively approximates the expected last disagreement but now is less susceptible to noise. More generally, this statistic allows us to perform selective classification by utilizing information from all the disagreements during training. In Appendix~\ref{sec:max_v_sum}, we experimentally show that \ssum leads to more robust selective classification results compared to \smax. \textbf{We remark that the sum score \ssum corresponds exactly to our score $g(\cdot)$ proposed as part of \sptd (recall Equation~\ref{eq:score} from Section~\ref{sec:method_overview}), showcasing the strong connection of our method to forging.}
 
-%\anvith{maybe still point to algorithm 2 and mention the modification? Or maybe have an algorithm in the appendix that states this change?}
-% \david{is this paragraph that necessary, esp considering you don't evaluated it? Perhaps just mention under regression that it can be naturally extended to time series prediction by summing over the predictions at each time step and can generally be naturally extended to any setting in which the variability (or perhaps entropy) of predictions can be defined/computed. Would be nice if you can quickly make such a speculative claim for object detection and segmentation as well}
 
-% \subsubsection{Summed Disagreement Score For Discrete Prediction ($s_\text{SUM}$)}
-% \label{sec:meth_class}
+\section{Why Training Dynamics Encode Reliable Uncertainty}
+\label{sec:sptd_theory}
+ 
+The preceding section introduced \sptd\ and formalized its weighted‐instability score~\eqref{eq:score}. Before turning to the empirical evaluation, we pause to explain \emph{why} late–stage checkpoint disagreement should correlate with predictive risk in the first place.  
+The argument links stochastic optimization to Bayesian posterior sampling and shows how both epistemic and aleatoric factors manifest as prolonged instability during training.  
+This theoretical perspective also clarifies when \sptd\ (and closely related Deep Ensembles) may fail, guiding practical deployment.
 
-% For discrete prediction problems (\ie classification) we define the label disagreement score as $a_t = 1- \delta_{f_t(\bm{x}),f_T(\bm{x})}$ where $\delta$ is the Dirac-delta function: $a_t$ is hence $1$ if the intermediate prediction $f_t$ at checkpoint $t$ disagrees with the final prediction $f_T$ for $\bm{x}$, else $0$. Since $v_t$ increases for larger $t$ and we want to identify points with instability late in training, we propose the following weighted sum score: $s_\text{SUM} = \sum_{t} v_t a_t$. \ssum places higher weight on late disagreements, which is intuitive as we expect disagreement towards the end of training to be more indicative of uncertainty in the final model's prediction. The full algorithm using \ssum, which we denote by \sptd(\ssum), is given in Algorithm~\ref{alg:sptd_ssum}.
+\subsection{From Optimization Noise to Predictive Risk}
 
-% In Section~\ref{} we evaluated $v_t$ and $e_t$ and found $e_t \approx 0$. Hence summing $a_t/v_t$ will give a score that upweights disagreements in regions where we do not expect disagreements to occur for ``good" convergence. We measured $v_t$ to decay in a convex (exponentially decreasing) manner, and hence propose to approximate $v_t \approx 1- t^k$ for $k \in [1,\infty)$. Hence, using these approximations we propose the following algorithm for selective classification:
+Modern views of stochastic gradient descent (SGD) treat its iterates as samples from a \emph{tempered Bayesian posterior} \citep{mandt2017stochastic,zhang2019cyclical}.  
+Intuitively, gradient noise enables exploration of multiple loss basins that fit the data nearly equally well.  
+For an input~$\bm{x}$, persistent disagreement among late checkpoints therefore indicates that \emph{several plausible models disagree}—a hallmark of uncertainty.  
+The weighted instability score $g(\bm{x})$ integrates this disagreement and thus acts as a proxy for posterior predictive variance.
 
-% \begin{enumerate}
-%      \item Denote $L = f_T(\bm{x})$, i.e. the label our final model predicts.
-%      \item If $\exists t~s.t~a_t =1$, compute $s_\text{sum} = \sum_{t=1}^T \frac{a_t}{v_t} $, else accept $\bm{x}$ with prediction $L$. 
-%      \item If $s_\text{sum} \leq \tau$ accept $\bm{x}$ with prediction $L$, else reject ($\bot$).
-% \end{enumerate}
+\subsection{Two Complementary Sources of Uncertainty}
 
-% \subsubsection{Weighted Variance Score For Real-Valued Prediction ($s_\text{WVR}$, $s_\text{WVTS}$)}
-% \label{sec:meth_regr}
+To make the connection precise, we distinguish two phenomena that raise predictive risk.  
+First, we introduce them conceptually; the next subsection shows how both surface in checkpoint behaviour.
 
-% As mentioned earlier, one key advantage of our method over previous ones is that it is generally applicable to any predictive model. As such, it also lends itself to applications in which we want to predict a real-valued quantity; a task that is covered by regression or time series forecasting.
+\begin{itemize}
+  \item \textbf{Aleatoric (data) uncertainty} — irreducible label noise (Bayes error) or class overlap that no model can resolve.
+  \item \textbf{Epistemic (model) uncertainty} — uncertainty about model parameters caused by finite data or limited model capacity.
+\end{itemize}
 
-% \paragraph{Regression} %Similarly as in Section~\ref{sec:meth_class}, we rely on the idea of prediction stability to derive a signal for rejection. However, due to real-valued outputs being continuous, a discretized agreement variable $a_t$ as previously used is not suitable for regression. Instead, 
-% For regression, we propose to measure instability by computing the prediction distance of intermediate predictions to the final model's prediction: $a_t = ||f_t (\bm{x}) - f_T (\bm{x})||$. As a result, all instability sequences converge to $0$ which allows us to isolate convergence patterns independent of the exact value of the final prediction\footnote{We also explore a more robust normalization by considering the average prediction computed over the last $l$ checkpoints: $a_t = ||f_t (\bm{x}) - \frac{1}{n}\sum_{c \in \{T-l, T-l+1, \ldots, T \}} f_c (\bm{x})||$. Across many $l$, we found the obtained results to be statistically indistinguishable from the results obtained by normalizing w.r.t the last checkpoint $f_T$ only.}. Then, by utilizing $v_t$ as previously defined, we compute a weighted variance of the real-valued instability score. This generalizes the binarized disagreement score to a continuous instability sequences. We define the resulting score for regression as follows and present the full method \sptd(\swvr) in Algorithm~\ref{alg:sptd_swvr}:
-% \begin{equation}
-% \label{eq:wv}
-%     % s_\text{WVR} = \underbrace{\frac{\sum_{t=1}^{T} v_t}{ (\sum_{t=1}^{T} v_t)^2 - \sum_{t=1}^{T} v_t^2}}_\text{normalization} \sum_{t=1}^{T} v_t (a_t - \mu)^2 \qquad \text{with} \qquad \mu = \frac{\sum_{t=1}^{T} v_t a_t}{\sum_{t=1}^{T} v_t}
-%     s_\text{WVR} = \sum_{t=1}^{T} v_t (a_t - \mu)^2 \qquad \text{with} \qquad \mu = \sum_{t=1}^{T} v_t a_t
-% \end{equation}
+Checkpoint disagreement captures \emph{both}.  
+Aleatoric noise keeps SGD oscillating because successive mini-batches pull the model toward conflicting optima, while epistemic uncertainty reflects diffuse posterior mass that SGD has not collapsed into a single mode.
 
-% \paragraph{Time Series Forecasting} We can further apply the same weighted variance scoring mechanism for time series methods by evaluating the weighted variance score from Equation~\ref{eq:wv} for each time step $r \in \{1,\ldots,R\}$ of the prediction horizon. Summing over all weighted variance scores yields our selective prediction score for time series:
-% \begin{equation}
-%     % s_\text{WVTS} = \sum_{r=1}^{R} \frac{\sum_{t=1}^{T} v_t\; \sum_{t=1}^{T} v_t (a_{t,r} - \mu_r)^2}{ (\sum_{t=1}^{T} v_t)^2 - \sum_{t=1}^{T} v_t^2} \qquad \text{with} \qquad \mu_r = \frac{\sum_{t=1}^{T} v_t a_{t,r}}{\sum_{t=1}^{T} v_t}
-%     s_\text{WVTS} = \sum_{r=1}^{R} \sum_{t=1}^{T} v_t (a_{t,r} - \mu_r)^2 \qquad \text{with} \qquad \mu_r = \sum_{t=1}^{T} v_t a_{t,r}
-% \end{equation}
+\subsection{Checkpoint Disagreement as Posterior Variance}
+
+Let $Z_t(\bm{x}) = f_t(\bm{x}) - f_T(\bm{x})$ denote the prediction change between checkpoint~$t$ and the final model.  
+Under the SGD-as-sampler view,
+\begin{equation}
+  \operatorname{Var}_{t}\bigl[Z_t(\bm{x})\bigr]
+  \;\approx\;
+  \operatorname{Var}_{\theta\sim p(\theta\mid D)}\bigl[f_{\theta}(\bm{x})\bigr].
+\end{equation}
+The instability score
+$
+  g(\bm{x})=\sum_{t=1}^{T} v_t\,|Z_t(\bm{x})|
+$
+therefore estimates a \emph{weighted tail integral} of this posterior variance, emphasizing late-training variance that has not yet collapsed.  
+Deep Ensembles approximate the same quantity by Monte-Carlo over random restarts; \sptd\ does so \emph{within one single training run}.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figs/sptd/sptd_de.pdf}
+    \caption{\textbf{Illustrative comparison of \sptd and \de on a toy 2-D loss landscape}. \textit{Left}: a single SGD trajectory (black) descending into the bottom-left well, with four late-stage checkpoints highlighted in color to capture localized instability. \textit{Right}: four independent SGD runs (black) converging to multiple distinct minima, each marked by its final checkpoint (colored) to approximate global posterior modes.
+}
+    \label{fig:sptd_de_traj}
+\end{figure}
+
+\subsection{Deep Ensembles as Monte-Carlo Posterior Estimators}
+\label{ssec:deep_ensembles_theory}
+
+A complementary—and historically more popular—route to posterior variance is the \emph{Deep Ensemble} (\de) paradigm \citep{lakshminarayanan2017simple}.  
+Here we train $M$ models $\{f_{\theta^{(m)}}\}_{m=1}^{M}$ from \emph{independent random initializations} (or data shuffles) and treat their empirical distribution as a Monte-Carlo approximation of the Bayesian posterior:
+\begin{equation}
+  \hat{p}_{\textsc{de}}(\theta)
+  \;=\;
+  \frac1M\sum_{m=1}^{M}\delta_{\theta^{(m)}}, 
+  \quad\Longrightarrow\quad
+  \operatorname{Var}_{\hat{p}_{\textsc{de}}}\bigl[f_{\theta}(\bm{x})\bigr]
+  \;=\;
+  \frac1M\sum_{m}\Bigl\lVert
+      f_{\theta^{(m)}}(\bm{x})
+      - \bar{f}(\bm{x})
+  \Bigr\rVert^{2},
+\end{equation}
+with $\bar{f}(\bm{x})$ the ensemble mean.  
+This variance estimator carries the same uncertainty semantics as the checkpoint-instability score $g(\bm{x})$, but differs in \emph{where} the Monte-Carlo samples come from:
+
+\begin{center}
+\begin{tabular}{p{0.23\linewidth}p{0.34\linewidth}p{0.34\linewidth}}
+\toprule
+ & \textbf{Sampling mechanism} & \textbf{Typical computational cost} \\
+\midrule
+\textbf{Deep Ensembles} & Independent SGD runs sample \emph{between} basins. & $\mathcal{O}(M)$ training + $\mathcal{O}(M)$ inference.\\[2pt]
+\textbf{Selective Prediction Training Dyanmics} & One SGD run, checkpoints sample \emph{within} a basin. & $\mathcal{O}(1)$ training\footnotemark{} + $\mathcal{O}(T)$ inference ($T\le50$).\\
+\bottomrule
+\end{tabular}
+\end{center}
+\footnotetext{Aside from negligible checkpoint storage, \sptd\ does not increase training time.}
+
+\paragraph{When do the two (dis-)agree?}  
+If the posterior is \emph{multi-modal} (several distant basins with comparable posterior mass), \de captures variance \emph{between} modes, whereas checkpoints mainly capture \emph{local} variance inside one basin. We illustrate this behavior in Figure~\ref{fig:sptd_de_traj}. It is also possible to combine both approaches (\sptdde) which yields a near-superset of posterior support. We explore this choice in our experiments in Section~\ref{sec:emp_eval}. Together, checkpoints and ensembles represent two sides of the same Bayesian coin—local versus global exploration of the posterior landscape.  Understanding their relationship clarifies why their judicious combination delivers the best empirical coverage–utility balance.
+
+\subsection{Limitations and Practical Implications}
+
+While the argument above justifies the use of training dynamics, several caveats deserve attention:
+
+\begin{itemize}
+  \item \textbf{Diminished model diversity.}  Extremely over-parameterized networks or aggressive learning-rate schedules can lead SGD to converge to almost identical solutions, weakening the disagreement signal.  In such cases one can (i)~retain more checkpoints, (ii)~restart training with different data shuffles, or (iii)~combine \sptd\ with lightweight ensemble members.
+  \item \textbf{Curriculum or non-stationary data.}  If the data distribution changes during training, early checkpoints reflect a different task than later ones.  Fixed data ordering or replay buffers help ensure that disagreement genuinely reflects uncertainty rather than curriculum artefacts.
+  \item \textbf{Calibration needs.}  The raw instability scores are \emph{rank-consistent} with risk but need post-hoc calibration (e.g.\ isotonic regression) when probabilistic coverage guarantees are required.
+\end{itemize}
+
+Having established the theoretical underpinnings and practical scope of \sptd, we next evaluate its performance across classification, regression, and forecasting tasks.
+
 
 \section{Empirical Evaluation}
 \label{sec:emp_eval}
 
 We present a comprehensive empirical study demonstrating the effectiveness of \sptd across domains. Our results show that computing and thresholding the proposed weighted instability score from \sptd provides a strong score for selective classification, regression, and time series prediction.
-%in both discrete (classification) as well as real-valued (regression, time series) prediction tasks.
 
 \subsection{Classification}
-
-%\subsection{Setup}
 
 \paragraph{Key Research Goals.} As part of our experiments we:
 \begin{itemize}
@@ -510,19 +410,11 @@ We present a comprehensive empirical study demonstrating the effectiveness of \s
     \item Analyze distributional training dynamics patterns of both correct and incorrect data points, the separation of which enables performative selective classification.
 \end{itemize} 
 
-% \looseness=-1
 \paragraph{Datasets \& Training.} We evaluate \sptd on vision benchmarks that are common in the selective classification literature: CIFAR-10/CIFAR-100~\citep{krizhevsky2009learning}, StanfordCars~\citep{krause20133d}, and Food101~\citep{bossard14}. For each dataset, we train a deep neural network following the ResNet-18 architecture~\citep{he2016deep} and checkpoint each model after processing $50$ mini-batches of size $128$. All models are trained over $200$ epochs ($400$ epochs for StanfordCars) using the SGD optimizer with an initial learning rate of $10^{-2}$, momentum $0.9$, and weight decay $10^{-4}$. Across all datasets, we decay the learning rate by a factor of $0.5$ in $25$-epoch intervals.
 
 \paragraph{Baselines.} We compare our method (\sptd) to common SC techniques previously introduced in Section~\ref{sec:background_sptd}: Softmax Response (\sr) and Self-Adaptive Training (\sat). Based on recent insights from~\cite{feng2023towards}, we (i) train \sat with additional entropy regularization\footnote{This entropy regularization step is designed to encourage the model to be more confident in its predictions.}; and (ii) derive \sat's score by applying Softmax Response (\sr) to the underlying classifier (instead of thresholding the abstention class). We refer to this method as \satersr. We do not include results for SelectiveNet, Deep Gamblers, or Monte-Carlo Dropout as previous works~\citep{huang2020self,feng2023towards} have shown that \fixed{\satersr} strictly dominates these methods. In contrast to recent SC works, we do however include results \fixed{with} Deep Ensembles (\de)~\citep{balaji2017uncertainty}, a relevant baseline from the uncertainty quantification literature. Our hyper-parameter tuning procedure is documented in Appendix~\ref{app:baseline_hyperparams}.
 
-% \subsubsection{Results}
-% \label{sec:results}
-
-%\todo{could stress in the table caption that the datasets are common in SC literature }
-
-\paragraph{Accuracy/Coverage Trade-off.} Consistent with standard evaluation schemes for selective classification, our main experimental results examine the accuracy/coverage trade-off of \sptd. We present our performance results with comparison to past work in Table~\ref{tab:target_cov} where we demonstrate \sptd's effectiveness on CIFAR-10, CIFAR-100, StanfordCars, and Food101. We document the results obtained by \sptd, \sat, \sr, and \de across the full coverage spectrum. 
-%with an emphasis on low-coverage (\ie desired high utility). 
-We see that \sptd outperforms both \sat and \sr and performs similarly as \de. To further boost performance across the accuracy/coverage spectrum, we combine \sptd and \de by applying \sptd on each ensemble member from \de and then average their scores. More concretely, we estimate $\sptdde = \frac{1}{m}\sum_{m=1}^M \sptd_m$ where $\sptd_m$ computes $g$ on each ensemble member $m\in[M]$. This combination leads to new state-of-the-art selective classification performance and showcases that \sptd can be flexibly applied on top of established training pipelines. 
+\paragraph{Accuracy/Coverage Trade-off.} Consistent with standard evaluation schemes for selective classification, our main experimental results examine the accuracy/coverage trade-off of \sptd. We present our performance results with comparison to past work in Table~\ref{tab:target_cov} where we demonstrate \sptd's effectiveness on CIFAR-10, CIFAR-100, StanfordCars, and Food101. We document the results obtained by \sptd, \sat, \sr, and \de across the full coverage spectrum. We see that \sptd outperforms both \sat and \sr and performs similarly as \de. To further boost performance across the accuracy/coverage spectrum, we combine \sptd and \de by applying \sptd on each ensemble member from \de and then average their scores. More concretely, we estimate $\sptdde = \frac{1}{m}\sum_{m=1}^M \sptd_m$ where $\sptd_m$ computes $g$ on each ensemble member $m\in[M]$. This combination leads to new state-of-the-art selective classification performance and showcases that \sptd can be flexibly applied on top of established training pipelines. 
 \newlyadded{
 Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_on_sat} where we show that applying \sptd on top of \sat also improves performance.
 }
@@ -569,13 +461,6 @@ Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_
 \label{fig:scores}
 \end{figure*}
 
-% \begin{figure*}[t]
-% \centering
-%   \includegraphics[width=\linewidth]{figs/sptd/dist_corr_incorr_g.pdf}
-% \caption{\fixed{\textbf{Distribution of $g$ for different datasets}. We see that correct predictions concentrate at $0$ (indicating training dynamics stability) while incorrect predictions spread over a wide score range.}}
-% \label{fig:scores}
-% \end{figure*} 
-
 \begin{figure*}[t]
   \centering
   \includegraphics[width=\linewidth]{figs/sptd/k_ablation.pdf}
@@ -594,8 +479,7 @@ Further evidence towards this flexibility is provided in Appendix~\ref{sec:sptd_
 \label{fig:resolution}
 \end{figure*}
 
-\paragraph{Checkpoint Selection Strategy.} The second important hyper-parameter of our method is the checkpoint selection strategy. In particular, to reduce computational cost, we study the sensitivity of \sptd with respect to the checkpointing resolution in Figure~\ref{fig:resolution}. Our experiments demonstrate favorable coverage/error trade-offs between $25$ and $50$ checkpoints when considering the full coverage spectrum. However, when considering the high coverage regime in particular (which is what most selective prediction works focus on), even sub-sampling $10$ intermediate models is sufficient for SOTA selective classification. Hence, with only observing the training stage, our method's computational overhead reduces to only $10$ forward passes at test time when the goal is to reject at most $30\%-50\%$ of incoming data points. In contrast, \de requires to first train $E$ models (with $E=10$ being a typical and also our particular choice for \de) and perform inference on these $E$ models at test time. %\anvith{would be nice to concretely say this is more expensive, but I guess is not needed. You can maybe say $M= 10$ is what we showed in the tables}. 
-Further increasing the checkpointing resolution does offer increasingly diminishing returns but also leads to improved accuracy-coverage trade-offs, especially at low coverage.
+\paragraph{Checkpoint Selection Strategy.} The second important hyper-parameter of our method is the checkpoint selection strategy. In particular, to reduce computational cost, we study the sensitivity of \sptd with respect to the checkpointing resolution in Figure~\ref{fig:resolution}. Our experiments demonstrate favorable coverage/error trade-offs between $25$ and $50$ checkpoints when considering the full coverage spectrum. However, when considering the high coverage regime in particular (which is what most selective prediction works focus on), even sub-sampling $10$ intermediate models is sufficient for SOTA selective classification. Hence, with only observing the training stage, our method's computational overhead reduces to only $10$ forward passes at test time when the goal is to reject at most $30\%-50\%$ of incoming data points. In contrast, \de requires to first train $E$ models (with $E=10$ being a typical and also our particular choice for \de) and perform inference on these $E$ models at test time. Further increasing the checkpointing resolution does offer increasingly diminishing returns but also leads to improved accuracy-coverage trade-offs, especially at low coverage.
 
 \begin{figure*}[t]
   \centering
@@ -606,7 +490,6 @@ Further increasing the checkpointing resolution does offer increasingly diminish
 
 
 \paragraph{Examining the Convergence Behavior of Training and Test Points.}
-% \label{ssec:ver_ei_vi}
 
 The effectiveness of \sptd relies on our hypothesis that correctly classified points and incorrectly classified points exhibit distinct training dynamics. We verify this hypothesis in Figure~\ref{fig:exp_var_trends} where we examine the convergence behavior of the disagreement distributions of correct ($c^\text{tr}_t$) / incorrect ($i^\text{tr}_t$) training and correct ($c^\text{te}_t$) / incorrect ($i^\text{te}_t$) test points. We observe that the expected disagreement for both correctly classified training $c^\text{tr}_t$ and test points $c^\text{te}_t$ points converge to $0$ over the course of training. The speed of convergence is subject to the difficulty of the optimization problem with more challenging datasets exhibiting slower convergence in predicted label disagreement. We also see that the variances follow an analogous decreasing trend. This indicates that correctly classified points converge to the final label quickly and fast convergence is strongly indicative of correctness. Furthermore, the overlap suggests that correct test points are more likely to be forgeable as their dynamics look indistinguishable to correct training points (recall Section~\ref{sec:forging} on the connection between our method and forging). In contrast, incorrectly classified points $i^\text{tr}_t$ and $i^\text{te}_t$ show significantly larger mean and variance levels. This clear separation in distributional evolution patterns across correct and incorrect points leads to strong selective prediction performance in our \sptd framework.
 
@@ -621,14 +504,12 @@ The effectiveness of \sptd relies on our hypothesis that correctly classified po
 \paragraph{Detection of Out-of-Distribution and Adversarial Examples.}
 
 Out-of-distribution (OOD) and adversarial example detection are important disciplines in trustworthy ML related to selective prediction. We therefore provide preliminary evidence in Figure~\ref{fig:adv_ood} that our method can be used for detecting OOD and adversarial examples. While these results are encouraging, we remark that adversarial and OOD samples are less well defined as incorrect data points and can come in a variety of different flavors (\ie various kinds of attacks or various degrees of OOD-ness). As such, we strongly believe that future work is needed to determine whether a training-dynamics-based approach to selective prediction can be reliably used for OOD and adversarial sample identification. 
-%In particular, a study of the exact observed training dynamics for both types of samples seems vital to ensure improved detectability.
 
 \paragraph{Cost vs Performance Tradeoff.} 
 
 In Table~\ref{tab:cost}, we report both the time and space complexities for all SC methods at training and test time along with their selective classification performance as per our results in Table~\ref{tab:target_cov} and Figure~\ref{fig:resolution}. We denote with $E$ the number of  \de models and with $T$ the number of \sptd checkpoints. Although \sr and \sat are the cheapest methods to run, they also perform the poorest at SC. \sptd is significantly cheaper to train than \de and achieves competitive performance at $T \approx E$. Although \sptdde is the most expensive model, it also provides the strongest performance.
 
 \begin{table}[ht]
-%\fontsize{7.5}{10}\selectfont
 \tabcolsep=0.12cm
 \small
     \centering 
@@ -654,12 +535,6 @@ In Table~\ref{tab:cost}, we report both the time and space complexities for all 
     \label{fig:ts}
 \end{figure*}
 
-% \stephan{Rewrite this connection once methods converged}
-
-% As alluded to in the assumptions presented in Section~\ref{ssec:reject_cond}, we hypothesize that training points (which we use to characterize optimization) and correctly classified test points share similar label convergence behavior. At the same time, incorrectly classified points should show different evolution patterns. We verify this hypothesis in Figure~\ref{fig:exp_var_trends} and observe that the expected label disagreement for both training and correctly classified points converge to $0$ over the course of training. The speed of convergence is subject to the difficulty of the optimization problem with more challenging datasets exhibiting slower convergence in label agreement. We also see that the variances follow an analogous decreasing trend. In general, both training points $p_t$ and correctly classified test points $c_t$ converge monotonically to~$0$. In contrast, incorrectly classified points $i_t$ show significantly larger mean and variance levels. Hence, the degree of separation between $c_t$ and $i_t$ leads to better selective classification performance.
-
-% \david{In my opinion, keeping this content and perhaps adding to it is very interesting, making clear the distinction in prediction dynamics between train and test points is very interesting and would make it clear why this method works (imo the biggest thing that's missing from the paper is an intuitive understanding for why this method works or might work, the logistic regression setting doesn't actually provide any intuition at all, just shows decision boundaries)}
-
 \subsection{Regression Experiments}
 \label{sec:regr_exp}
 
@@ -680,13 +555,11 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
 \subsection{Time Series Experiments}
 \label{sec:ts_exp}
 
-\paragraph{Datasets.} As part of our time series experiments, we mainly consider the M4 forecasting competition dataset~\citep{makridakis2020m4} which contains time series aggregated at various time intervals (\eg hourly). In addition, we also provide experimentation on the Hospital dataset~\citep{hyndman2015expsmooth}. %and \texttt{electricity} dataset~\citep{misc_electricityloaddiagrams20112014_321}.
+\paragraph{Datasets.} As part of our time series experiments, we mainly consider the M4 forecasting competition dataset~\citep{makridakis2020m4} which contains time series aggregated at various time intervals (\eg hourly). In addition, we also provide experimentation on the Hospital dataset~\citep{hyndman2015expsmooth}.
 
 \paragraph{Models \& Setup.} Our experimentation is carried out using the GluonTS time series framework~\citep{alexandrov2019gluonts} and the DeepAR model \citep{salinas2020deepar}, a recurrent neural network designed for time series forecasting. We train all models over 200 epochs and evaluate performance using the mean scaled interval score (MSIS) performance metric~\citep{makridakis2020m4}. Our baselines correspond to the same as presented for regression in Section~\ref{sec:regr_exp}: deep ensembles (\de), and output parameterization using a Student-t distribution (\odist).
 
 \paragraph{Main Results.} Our time series results are shown in Figure~\ref{fig:ts} and are consistent with our results for regression: \odist does not provide a meaningful signal for selective prediction while \sptd and \de perform similarly well. \sptd further improves results over \de at low converge.
-
-% We observe the same key insights for our time series forecasting panel and discuss these results in Appendix~\ref{sec:ts_exp}.
 
 
 \begin{table*}[h!]
@@ -707,9 +580,6 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
   &        30 &  98.5 (±0.0) &  \underline{99.8 (±0.0)} &  99.8 (±0.0) &  \underline{99.8 (±0.1)} & \bfseries 100.0 (±0.0) \\
   &        20 &  98.5 (±0.1) &  \underline{99.8 (±0.1)} &  99.8 (±0.0) & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) \\
   &        10 &  98.7 (±0.0) &  99.8 (±0.1) &  99.8 (±0.1) & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) \\
- %  &         5 &  98.7 (±0.0) & \bfseries 100.0 (±0.0) &  99.8 (±0.0) & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) \\
- % &         2 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} &  99.7 (±0.0) & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) \\
- %  &         1 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) \\
  \midrule
   \multirow{10}{*}{\rotatebox[origin=c]{90}{\textit{CIFAR-100}}}  &       100 &  \underline{\bfseries 75.1 (±0.0)} &  \underline{\bfseries 75.1 (±0.0)} &  \bfseries 75.1 (±0.0) &  \underline{\bfseries 75.1 (±0.0)} &  \bfseries 75.1 (±0.0) \\
 & 90 & 78.2 (± 0.1) & 78.9 (± 0.1) & 80.2 (± 0.0) & \underline{80.4 (± 0.1)} & \bfseries 81.1 (± 0.1) \\
@@ -721,17 +591,6 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
 & 30 & 97.2 (± 0.2) & 97.5 (± 0.0) & \textbf{98.4 (± 0.1)} & \underline{\textbf{98.4 (± 0.1)}} & \bfseries 98.5 (± 0.0) \\
 & 20 & 97.8 (± 0.1) & 98.3 (± 0.1) & \textbf{99.0 (± 0.0)} & \underline{98.8 (± 0.2)} & \bfseries 99.2 (± 0.1) \\
 & 10 & 98.1 (± 0.0) & 98.8 (± 0.1) & 99.2 (± 0.1) & \underline{\textbf{99.4 (± 0.1)}} & \bfseries 99.6 (± 0.1) \\
-%  &         5 &  97.8 (±0.0) &  98.8 (±0.0) &  99.3 (±0.0) &  \underline{99.6 (±0.1)} &  \bfseries 99.9 (±0.1) \\
-% &         2 &  \underline{99.6 (±0.0)} &  \underline{99.6 (±0.0)} &  98.9 (±0.0) &  \underline{99.6 (±0.2)} &  \bfseries 100.0 (±0.0) \\
-%  &         1 &  \underline{99.6 (±0.2)} &  \underline{99.6 (±0.0)} &  98.9 (±0.1) &  \underline{99.6 (±0.1)} &  \bfseries 100.0 (±0.0) \\
-
-
-% \bottomrule
-% \end{tabular}
-% \quad
-%  \begin{tabular}{ccccccc}
-% \toprule
-% &  Cov. &       \sr &       \fixed{\satersr} &      \de &      \sptd &        \sptdde \\
 \midrule
 
     \multirow{10}{*}{\rotatebox[origin=c]{90}{\textit{Food101}}} &       100 &  \underline{\bfseries 81.1 (±0.0)} &  \underline{\bfseries 81.1 (±0.0)} & \bfseries  81.1 (±0.0) & \underline{\bfseries 81.1 (±0.0)} & \bfseries 81.1 (±0.0) \\
@@ -744,9 +603,6 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
      &        30 &  99.5 (±0.0) &  99.7 (±0.2) &  99.2 (±0.0) &  \underline{99.6 (±0.0)} &  \bfseries 99.7 (±0.0) \\
      &        20 &  99.7 (±0.1) &  99.7 (±0.2) &  \bfseries 99.9 (±0.1) &  \underline{\bfseries 99.8 (±0.0)} &  \bfseries 99.9 (±0.1) \\
      &        10 &  99.8 (±0.0) &  99.8 (±0.1) &  \bfseries 99.9 (±0.1) &  \underline{\bfseries 99.9 (±0.1)} &  \bfseries 99.9 (±0.1) \\
-    %  &         5 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 99.9 (±0.1)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} &  \bfseries 100.0 (±0.0) \\
-    % &         2 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} &  \bfseries 100.0 (±0.0) \\
-    %  &         1 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} &  \bfseries 100.0 (±0.0) \\
   \midrule
     \multirow{10}{*}{\rotatebox[origin=c]{90}{\textit{StanfordCars}}} &       100 & \bfseries \underline{77.6 (±0.0)} & \underline{\bfseries 77.6 (±0.0)} & \bfseries 77.6 (±0.0) & \underline{\bfseries 77.6 (±0.0)} & \bfseries 77.6 (±0.0) \\
      &        90 &  83.0 (±0.1) &  83.0 (±0.2) &  \bfseries 83.7 (±0.1) &  \underline{83.3 (±0.1)} &  \bfseries 83.7 (±0.2) \\
@@ -758,12 +614,13 @@ California housing dataset~\citep{pace1997sparse} ($N=20640$, $D=8$), the concre
      &        30 &  97.5 (±0.1) &  \underline{98.2 (±0.2)} &  \bfseries 98.6 (±0.0) &  \underline{98.2 (±0.2)} &  \bfseries 98.9 (±0.0) \\
      &        20 &  98.1 (±0.0) &  \underline{98.4 (±0.1)} &  \bfseries 98.9 (±0.2) &  \underline{98.6 (±0.0)} &  \bfseries 99.0 (±0.0) \\
      &        10 &  98.2 (±0.1) &  \underline{98.7 (±0.1)} &  \bfseries 99.5 (±0.1) &  \underline{98.5 (±0.1)} &  \bfseries 99.5 (±0.0) \\
-    %  &         5 &  98.9 (±0.1) &  \underline{99.1 (±0.1)} &  \bfseries 99.8 (±0.1) &  \underline{98.9 (±0.2)} &  \bfseries 99.8 (±0.0) \\
-    % &         2 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} &  \bfseries 100.0 (±0.0) \\
-    %  &         1 & \underline{\bfseries 100.0 (±0.0)} & \underline{\bfseries 100.0 (±0.0)} & \bfseries 100.0 (±0.0) & \underline{\bfseries 100.0 (±0.0)} &  \bfseries 100.0 (±0.0) \\
 \bottomrule
 \end{tabular}
 \caption[Selective accuracy achieved across coverage levels]{\textbf{Selective accuracy achieved across coverage levels}. We find that \texttt{SPTD}-based methods outperform current SOTA error rates across multiple datasets with full-coverage accuracy alignment. Numbers are reported with mean values and standard deviation computed over 5 random runs. \textbf{Bold} numbers are best results at a given coverage level across all methods and \underline{underlined} numbers are best results for methods relying on a single training run only. Datasets are consistent with~\cite{feng2023towards}.}
     \label{tab:target_cov}
     }
 \end{table*} 
+
+\section{Conclusion}
+
+In this work we have proposed \sptd, a selective prediction technique that relies on measuring prediction instability of test points over intermediate model states obtained during training. Our method offers several advantages over previous works. In particular (i) it can be applied to all existing models whose checkpoints were recorded (hence the potential for immediate impact); (ii) it is composable with existing selective prediction techniques; (iii) it can be readily applied to both discrete and real-valued prediction problems; and (iv) it is more computationally efficient than competing ensembling-based approaches. We verified the performance of \sptd using an extensive empirical evaluation, leading to new state-of-the-art performance in the field. Beyond our work, we expect training dynamics information to be useful for identifying and mitigating other open problems in trustworthy machine learning such as (un)fairness, privacy, and model interpretability.
