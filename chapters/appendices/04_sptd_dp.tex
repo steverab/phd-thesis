@@ -28,59 +28,6 @@ We provide a detailed definition of DP-SGD in Algorithm~\ref{alg:dpsgd}.
 	\end{algorithmic}
 \end{algorithm}
 
-% \subsection{Selective Classification Method Details}
-% \label{sec:add_sc_details}
-
-% \paragraph{Softmax Response (\sr)} The traditional baseline methods for selective prediction is the \emph{Softmax Response} (\sr) method \citep{hendrycks2016baseline, geifman2017selective}. This method uses the confidence of the final prediction model $f$ as the selection score:
-% \begin{equation}
-% 	g_{\sr}(\bm{x}, f) = \max_{c \in C} f(\bm{x})
-% \end{equation}
-% While this method is easy to implement and does not incur any additional cost, \sr has been found to be overconfident on ambiguous, hard-to-classify, or unrecognizable inputs.
-
-% \paragraph{SelectiveNet (\sn)} 
-% A variety of SC methods have been proposed that leverage explicit architecture and loss function adaptations. For example, \emph{SelectiveNet} (\sn) \citep{geifman2019selectivenet} modifies the model architecture to jointly optimize $(f,g)$ while targeting the model at a desired coverage level~$c_\text{target}$. The augmented model consists of a representation function $r: \mathcal{X} \rightarrow \mathbb{R}^L$ mapping inputs to latent codes and three additional functions: (i) the \emph{prediction} function $f: \mathbb{R}^L \rightarrow \mathbb{R}^C$ for the classification task targeted at~$c_\text{target}$; (ii) the \emph{selection} function $g: \mathbb{R}^L \rightarrow [0,1]$ representing a continuous approximation of the accept/reject decision for $\bm{x}$; and (iii) an additional \emph{auxiliary} function $h: \mathbb{R}^L \rightarrow \mathbb{R}^C$ trained for the unconstrained classification tasks. This yields the following losses:
-%  \begin{align}
-%  	\mathcal{L} & = \alpha \mathcal{L}_{f,g} + (1-\alpha) \mathcal{L}_h \\
-%  	\mathcal{L}_{f,g} & = \frac{\frac{1}{M}\sum_{m=1}^{M} \ell( f \circ r(\bm{x}_m) , y_m)}{\text{cov}(f,g)} + \lambda \max(0, c - \text{cov}(f,g))^2 \\
-%  	\mathcal{L}_{h} & = \frac{1}{M}\sum_{m=1}^{M} \ell( h \circ r(\bm{x}_m) , y_m)
-%  \end{align}
-%  The selection score for a particular point $\bm{x}$ is then given by:
-%  \begin{equation}
-%  	g_{\sn}(\bm{x}, f) = \sigma(g \circ r(\bm{x})) = \frac{1}{1 + \exp(g \circ r(\bm{x}))}
-%  \end{equation}
-
-%  \paragraph{Self-Adaptive Training (\sat)}
-%  Alternatively, prior works like Deep Gamblers~\citep{liu2019deep} and \emph{Self-Adaptive Training}~\citep{huang2020self} have also considered explicitly modeling the abstention class $\bot$ and adapting the optimization process to provide a learning signal for this class. For instance, \emph{Self-Adaptive Training} (\sat) incorporates information obtained during the training process into the optimization itself by computing and monitoring an exponential moving average of training point predictions over the training process. Samples with high prediction uncertainty are then used for training the abstention class. To ensure that the exponential moving average captures the true prediction uncertainty, an initial burn-in phase is added to the training procedure. This delay allows the model to first optimize the non-augmented, \ie original $C$-class prediction task and optimize for selective classification during the remainder of the training process. The updated loss is defined as:
-%  \begin{equation}
-%  	\mathcal{L} = -\frac{1}{M}\sum_{m=1}^{M} \left ( t_{i,y_i}\log p_{i,y_i} + (1-t_{i,y_i})\log p_{i,C+1} \right )
-%  \end{equation}
-% The rejection/abstention decision is then determined by the degree of confidence in the rejection class:
-% \begin{equation}
-% 	g_{\sat}(\bm{x}, f) = f(\bm{x})_{C+1}
-% \end{equation}
-
-%  \paragraph{Deep Ensembles (\de)}
-%  Finally, ensemble methods combine the information content of $M$ models into a single final model. Since these models approximate the variance of the underlying prediction problem, they are often used for the purpose of uncertainty quantification and, by extension, \selp. The canonical instance of this approach for deep learning based models, \emph{Deep Ensembles}~(\de)~\citep{lakshminarayanan2017simple}, trains multiple models from scratch with varying initializations using a proper scoring rule and adversarial training. Then, after averaging the predictions made by the model, the softmax response (\sr) mechanism is applied:
-%  \begin{equation}
-%  	g_{\de}(\bm{x}, f) = \max_{c \in C} \frac{1}{M} \sum_{m=1}^{M} f_{\bm{\theta}_{m,T}}(\bm{x}).
-%  \end{equation}
- 
-%  \paragraph{Monte-Carlo Dropout (\mcdo)} 
-%   To overcome the computational cost of estimating multiple models from scratch, \emph{Monte-Carlo Dropout} (\mcdo) \citep{gal2016dropout} allows for bootstrapping of model uncertainty of a dropout-equipped model at test time. While dropout is predominantly used during training to enable regularization of deep neural nets, it can also be used at test time to yield a random sub-network of the full neural network. Concretely, given a model $f$ with dropout-probability $o$, we can generate $M$ random sub-networks at test-time by deactivating a fraction $o$ of nodes. For a given test input $\bm{x}$ we can then average the outputs over all models and apply softmax response (\sr):
-%  \begin{equation}
-%  	g_{\mcdo}(\bm{x}, f) = \max_{c \in C} \frac{1}{Q} \sum_{q=1}^{Q} f_{o(\bm{\theta}_{T})}(\bm{x})
-%  \end{equation}
- 
-%   \paragraph{Selective Classification Training Dynamics (\sctd)} Another ensembling approach that has recently demonstrated state-of-the-art \selc performance is based on monitoring the model evolution during the training process. \emph{Selective Classification Training Dynamics}~(\sctd)~\citep{rabanser2022selective} records intermediate models produced during training and computes a disagreement score of the intermediate predictions with the final prediction for any test-time input $\bm{x}$:
-%   \begin{equation}
-%  	g_{\sctd}(\bm{x}, f) = \sum_{t=1}^{T} v_ta_t(\bm{x}, f) \quad \text{with} \quad a_t(\bm{x}, f) = \begin{cases}
-%    1  & f_{\bm{\theta}_{t}}(\bm{x}) \neq f_{\bm{\theta}_{T}}(\bm{x}) \\
-%    0 & \text{otherwise}
-%  \end{cases} \qquad v_t = \bigg(\frac{t}{T}\bigg)^k
-%  \end{equation}
-% \sctd only observes the training process and does not modify the model architecture/training objective.
-
-
 \section{Additional Experimental Details}
 
 \subsection{Hyperparameters}
@@ -97,23 +44,14 @@ We document these results in Figures~\ref{fig:cifar10_classimb} and \ref{fig:fas
 
 \begin{figure*}[t]
   \centering
-  %   \ifarxiv
-  % \includegraphics[width=\linewidth]{figs/sptd_dp/cifar10_classimb_arxiv.pdf}
-  % 	\else
-	  \includegraphics[width=\linewidth]{figs/sptd_dp/cifar10_classimb.pdf}
-	% \fi
-
+\includegraphics[width=\linewidth]{figs/sptd_dp/cifar10_classimb.pdf}
 \caption[Inducing a class imbalance on CIFAR-10]{\textbf{Inducing a class imbalance on CIFAR-10}. We train multiple CIFAR-10 models across privacy levels and sampling probabilities for class 0 given by $p_0$. We plot the accuracy/coverage trade-off as well at the exact coverage level at which any point from the minority class is accepted. The accuracy-coverage trade-off for the full dataset is given by the dashed line while the trade-off for the minority group only is given by the solid line. Blue vertical lines show correctly classified points, orange points show incorrectly classified points. Non-private models accept correct points first and do so at the end of the coverage spectrum (\ie majority points are accepted first). As we increase privacy (\ie decrease $\varepsilon$), the model is increasingly unable to rank minority examples based on prediction correctness and even accepts incorrect points first. Moreover, the accuracy of the model on the minority class decreases with stronger DP. These effects are especially strong for small sampling probabilities.}
 \label{fig:cifar10_classimb}
 \end{figure*}
 
 \begin{figure*}[t]
   \centering
-  %     \ifarxiv
-  % \includegraphics[width=\linewidth]{figs/sptd_dp/fashionmnist_classimb_arxiv.pdf}
-  % 	\else
 	  \includegraphics[width=\linewidth]{figs/sptd_dp/fashionmnist_classimb.pdf}
-	% \fi
   
 \caption[Inducing a class imbalance on FashionMNIST.]{\textbf{Inducing a class imbalance on FashionMNIST}. Same insights as in Figure~\ref{fig:fashionmnist_classimb}.}
 \label{fig:fashionmnist_classimb}
@@ -128,11 +66,7 @@ We assume a binary classification setting for which we generate a true label vec
 
 \begin{figure*}[t]
   \centering
-   %      \ifarxiv
-   %  \includegraphics[width=\linewidth]{figs/sptd_dp/bound_reachability_arxiv.pdf}
-  	% \else
 	    \includegraphics[width=\linewidth]{figs/sptd_dp/bound_reachability.pdf}
-	% \fi
 
 \caption[Upper bound matching experiment.]{\textbf{Upper bound matching experiment}. The experiment as described in Section~\ref{sec:opt_bound_reach} matches the optimal bound exactly across multiple full-coverage accuracy levels.}
 \label{fig:bound_reachability}

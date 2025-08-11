@@ -4,11 +4,9 @@
 \chapter{What Does It Take to Build a Performant Selective Classifier?}
 \label{ch:sc_bounds}
 
-% \paperref{\bibentry{rabanser2025what}}
-
 \begin{paperref}
 \normalfont
-The contents of this chapter consist of research and results taken from: \emph{\bibentry{rabanser2025what}}
+The contents of this chapter consist of research and results taken from: \citet{rabanser2025what}: \emph{\bibentry{rabanser2025what}}
 \end{paperref}
 
 \section*{Summary}
@@ -70,7 +68,6 @@ Two insights, developed further in later sections, are worth previewing. First, 
 
 \textbf{Contributions.}
 We summarize our main contributions below:
-% \vspace{-5pt}
 \begin{itemize}
     \item \textbf{Problem formulation.}  
           We recast selective prediction in terms of a \emph{coverage‑uniform selective‑classification gap}—the key quantity to minimize to approach oracle behavior.  
@@ -110,9 +107,6 @@ A popular selective prediction method is \emph{Softmax Response} (\sr)~\citep{he
 To improve calibration and reduce predictive variance, ensembling approaches have been explored: \emph{Deep Ensembles} (\de)~\citep{lakshminarayanan2017simple} train multiple models with different initializations, while \emph{Selective Classification via Training Dynamics} (\sctd)~\citep{rabanser2022selective} ensembles intermediate checkpoints.  
 Other methods—such as \emph{SelectiveNet} (\sn)\citep{geifman2019selectivenet}, \emph{Deep Gamblers} (\dg)\citep{liu2019deep}, and \emph{Self-Adaptive Training} (\sat)~\citep{huang2020self}—alter the model architecture or loss function ensuring that prediction and rejection are learned jointly.
 
-
-
-
 The efficacy of a selective classifier is evaluated using the empirical accuracy-coverage tradeoff.
 
 \begin{definition}[Empirical Accuracy–Coverage Tradeoff]
@@ -136,25 +130,18 @@ Let \(D=\{(x_i,y_i)\}_{i=1}^N\) be a dataset.  For a selective classifier \((h,g
 \end{align}
 The pair \((\hat{\xi}, \hat{\alpha})\) as \(\tau\) varies is the empirical accuracy–coverage curve.
 \end{definition}
-% \mnote{Should the def be titled 'curve' rather than 'tradeoff'? Usually tradeoff refers to a concrete result about the curve}
 The score \(g(x,h)\) therefore induces a total order over \(D\): \(x_1\) is accepted before \(x_2\) if \(g(x_1,h) > g(x_2,h)\).  
 This ordering governs which inputs are retained as coverage decreases.  
 Effective strategies aim to maximize \(\hat{\alpha}\) at each coverage level \(\hat{\xi}\), often trading off accuracy and coverage.
-
-%\my{I think you need to specify that you are not assuming a batched setting at all here. A total order is only meaningful if at every point, you can see all the samples at once.}
-% \my{Also maybe motivate why we care about the induced ordering here? make the transition smoother that is.}
 
 
 \paragraph{Accuracy–coverage tradeoff evaluation.}
 The accuracy–coverage tradeoff is often summarized by the area under the accuracy–coverage curve (\texttt{AUACC}), integrating selective accuracy over all coverage levels. However, \citet{geifman2018bias} show that \texttt{AUACC} favors models already accurate at full coverage. To address this issue, \citet{geifman2018bias} and \citet{rabanser2023training} propose oracle-based bounds, which become loose at low utility~\citep{galil2023can}. To avoid accuracy bias, \citet{galil2023can} and \citet{pugnana2023auc} recommend using the classifier’s \texttt{AUROC} instead. But \texttt{AUROC} is not monotonic in \texttt{AUACC}~\citep{cattelan2023fix, ding2020revisiting}, thus favoring methods tuned for \texttt{AUROC} over selective accuracy. Earlier work~\citep{el2010foundations, wiener2011agnostic} characterizes optimal selective classifiers in both realizable and agnostic regimes but focuses on existence rather than practical instantiation—unlike our finite-sample perspective.
 
-
-
 \section{Decomposing the Selective Classification Gap To Optimality}
 \label{sec:methods}
 
 We characterize the optimal performance achievable by a selective classifier given its full-coverage accuracy, establishing a reference against which all practical selective classifiers can be evaluated.
-
 
 \subsection{Oracle Bound and Selective Classification Gap}
 
@@ -176,7 +163,7 @@ posterior correctness $\Pr(h(X)=Y\mid X)$—is
 \end{equation}
 \end{definition}
 
-This piecewise curve (see Figure~\ref{fig:bounds_overview}) traces an \emph{oracle} accuracy–coverage frontier, assuming access to a perfect ranking of examples by correctness probability. Any real selective classifier falls below this bound—potentially far below, depending on its calibration, expressivity, and sensitivity to noise. To quantify how far a given classifier falls short of this ideal, we define the \emph{selective classification gap}.
+Assuming no Bayes noise—that is, all errors are avoidable given perfect confidence—this piecewise curve (see Figure~\ref{fig:bounds_overview}) traces the \emph{oracle} accuracy–coverage frontier based on a perfect ranking of examples by correctness probability. Any real selective classifier falls below this bound—potentially far below, depending on its calibration, expressivity, and sensitivity to noise. To quantify how far a given classifier falls short of this ideal, we define the \emph{selective classification gap}.
 
 \begin{definition}[Selective Classification Gap]
 \label{def:gap}
@@ -195,6 +182,7 @@ The selective classification gap at coverage \(c\) is then defined as the deviat
 \overline{\mathrm{acc}}\bigl(a_{\mathrm{full}},c\bigr)
 \;-\;\mathrm{acc}_c(h,g).
 \end{equation}
+This gap $\Delta(c)$ represents the excess selective risk at a given coverage $c$. Its integral over the entire coverage spectrum, $\int_0^1 \Delta(c) dc$, is equivalent to the Excess-AURC (E-AURC) metric proposed by \citet{geifman2018bias}.
 \end{definition}
 
 The function \(\Delta(c)\) offers a coverage-resolved diagnostic of selective performance. A small gap indicates near-oracle behavior—accepting only examples it can confidently and correctly classify—while a large gap suggests limitations in estimating correctness or ranking examples reliably. Understanding the magnitude and shape of this gap is key to analyzing and improving selective classifiers.
@@ -323,7 +311,6 @@ test points.  Then, with probability at least \(1-\delta\),
 +C\sqrt{\tfrac{\log(1/\delta)}{n}}.
 \label{eq:emp-gap-ranking}
 \end{equation}
-% where \(C>0\) is an absolute constant.
 \end{theorem}
 
 \begin{proof}
@@ -410,7 +397,6 @@ accuracy–coverage curve is negligible—a pattern we also observe empirically.
 \textbf{Moving the Gap Requires Non-Monotone Scoring.}
 To reduce the selective classification gap \(\Delta(c)\), one must go beyond simple monotone calibration and actively modify the acceptance ordering through one of the following approaches:
 
-% \vspace{-5pt}
 \begin{itemize}
     \item \textbf{Adaptive, ensemble, or feature-aware scoring}:  
           Techniques such as self-adaptive training (\(\texttt{SAT}\)), deep ensembles (\(\texttt{DE}\)), and learned calibration heads \(g_\psi(x)\) predict correctness scores from hidden representations or multiple model votes. These approaches leverage instance-specific uncertainty and shared feature context to rerank samples that otherwise receive similar raw confidence values.
@@ -418,11 +404,8 @@ To reduce the selective classification gap \(\Delta(c)\), one must go beyond sim
 \item \textbf{Binning or resampling}:  
       Techniques such as Bayesian Binning into Quantiles (BBQ)~\citep{naeini2015obtaining} and conformal p-value methods~\citep{angelopoulos2021gentle} refine confidence scores by estimating accuracy over adaptive data subsets. Both use empirical statistics—either at the bin level or per example—to recalibrate and reorder predictions, often improving ranking.
 
-
 \item \textbf{Vector/Dirichlet scaling}:  
       A non-monotone transformation of the logit vector \(z\) via a learned affine map \(Wz + b\), with \(W \in \mathbb{R}^{K \times K}\), enables reordering of confidence scores by capturing inter-class dependencies, nonlinear score interactions, and representation-sensitive shifts~\citep{kull2019beyond}.
-
-
 
 \end{itemize}
 
@@ -479,17 +462,16 @@ Our experimental study is organized around three guiding questions that reflect 
 We conduct both synthetic and real-world experiments. For our synthetic results, which give us precise control over the data generation process, we simulate two sources of intrinsic difficulty on the two‑moons dataset:
 (i) \textbf{noise $\sigma \in \{0.1,\,0.33,0.66,\,1.5\}$} controls how much the two moons expand into each other; and
 (ii) \textbf{model capacity}, varied from logistic regression
-(low capacity) to a shallow MLP (high capacity). For our real-world experiments we tackle the analysis similarly: for (i) we evaluate a trained CIFAR-10 model on the CIFAR-10N/100N~\citep{wei2021learning} datasets to assess which data points have large labeling disagreement; and for (ii) we vary the model architecture across a simple CNN (details in Appendix~\ref{app:simplecnn}), a ResNet-18~\citep{he2016deep}, and a WideResNet-50~\citep{zagoruyko2016wide} on CIFAR-100~\citep{krizhevsky2009learning} and StanfordCars~\citep{krause20133d}. For each setting we plot and compute the area enclosed between the empirical accuracy-coverage curve and the model's perfect-ordering upper bound. i.e., \(\int_0^1 \widehat{\Delta}(c)dc\).
+(low capacity) to a shallow MLP (high capacity). For our real-world experiments we tackle the analysis similarly: for (i) we evaluate a trained CIFAR-10 model on the CIFAR-10N/100N~\citep{wei2021learning} datasets to assess which data points have large labeling disagreement; and for (ii) we vary the model architecture across a simple CNN (details in Appendix~\ref{app:simplecnn}), a ResNet-18~\citep{he2016deep}, and a WideResNet-50~\citep{zagoruyko2016wide} on CIFAR-100~\citep{krizhevsky2009learning} and StanfordCars~\citep{krause20133d}. For each setting, we plot and compute the Excess-AURC (E-AURC) \citep{geifman2018bias} by integrating the empirical gap $\widehat{\Delta}(c)$ across all coverage levels.
 
 \begin{figure}[t]
   \centering
-  % Left: 75% width
   \begin{subfigure}[t]{0.49\textwidth}
   \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/2moons_models.pdf}%
     \caption{Approximation error with two moons dataset.}
     \label{fig:left}
-  \end{subfigure}%
+  \end{subfigure}
   \begin{subfigure}[t]{0.24\textwidth}
     \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/cifar100_arch_tradeoffs.pdf} 
@@ -508,13 +490,12 @@ We conduct both synthetic and real-world experiments. For our synthetic results,
 
 \begin{figure}[t]
   \centering
-  % Left: 75% width
   \begin{subfigure}[t]{0.49\textwidth}
   \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/2moons_bayes.pdf}%
     \caption{Bayes error with two moons dataset.}
     \label{fig:left}
-  \end{subfigure}%
+  \end{subfigure}
   \begin{subfigure}[t]{0.24\textwidth}
     \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/cifar10_noisy_tradeoff.pdf}
@@ -535,7 +516,6 @@ We conduct both synthetic and real-world experiments. For our synthetic results,
 \emph{Findings.}
 In terms of approximation error, Figure~\ref{fig:exp_appr} demonstrates that limited model capacity leads to larger gaps, while more expressive models yield tighter alignment with the perfect-ordering bound. This suggests that approximation error is a key driver of looseness. In terms of Bayes error, Figure~\ref{fig:exp_bayes} shows that increasing label noise consistently shifts the accuracy--coverage curve downward, indicating that Bayes error introduces an irreducible component to the gap. These results validate the canonical bound (Eq.~\ref{eq:emp-gap-ranking})---large Bayes or approximation error can explain substantial looseness.
 
-
 \begin{table}[t]
 \centering
 \fontsize{9}{10}\selectfont
@@ -550,7 +530,7 @@ In terms of approximation error, Figure~\ref{fig:exp_appr} demonstrates that lim
  & \msp & \temp & \sat & \de & \msp & \temp & \sat & \de & \msp & \temp & \sat & \de \\
 \midrule
 Gap & 0.086 & 0.085 & 0.081 & 0.065 & 0.033 & 0.033 & 0.028 & 0.026 & 0.031 & 0.032 & 0.028 & 0.026 \\
-ECE & 0.142 & 0.008 & 0.116 & 0.019 & 0.052 & 0.048 & 0.026 & 0.034 & 0.066 & 0.050 & 0.046 & 0.030 \\
+ECE & 0.142 & 0.008 & 0.116 & 0.019 & 0.052 & 0.045 & 0.034 & 0.026 & 0.066 & 0.050 & 0.046 & 0.030 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -567,13 +547,12 @@ We summarize our findings in Table~\ref{tab:cifar100_cal}. While temperature sca
 
 \begin{figure}[t]
   \centering
-  % Left: 75% width
   \begin{subfigure}[t]{0.49\textwidth}
   \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/2moons_shift.pdf}%
     \caption{Distribution shifts with two moons dataset.}
     \label{fig:left}
-  \end{subfigure}%
+  \end{subfigure}
   \begin{subfigure}[t]{0.24\textwidth}
     \centering
     \includegraphics[width=\linewidth]{figs/sc_bounds/cifar10c_tradeoffs.pdf} 
